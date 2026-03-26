@@ -1,0 +1,39 @@
+.button {
+  border: none;
+  background: none;
+
+  &__main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--button-height);
+    padding: 14px 32px;
+    border-radius: var(--border-radius);
+    background-color: var(--color-accent);
+    color: var(--color-light);
+    font-size: 16px;
+
+    @include hover {
+      box-shadow: var(--box-shadow);
+    }
+  }
+
+  &--transparent {
+    opacity: .6;
+    background-color: transparent;
+    color: var(--color-dark);
+    border: var(--border);
+
+    @include hover {
+      box-shadow: none;
+      border: var(--border-active);
+      opacity: 1;
+    }
+  }
+
+  &__burger-menu {
+    @include hover {
+      opacity: .6;
+    }
+  }
+}

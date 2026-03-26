@@ -1,0 +1,9 @@
+@import 'normalize', 'mixins', 'fonts', 'variables', 'media', 'utils', 'globals';
+
+@import
+    '../components/Header/Header',
+    '../components/Button/ButtonLink',
+    '../components/Logo/Logo',
+    '../components/mobileOverlay/MobileOverlay',
+    '../components/Hero/Hero',
+    '../pages/Main/Main.scss';

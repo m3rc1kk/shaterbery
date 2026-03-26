@@ -1,0 +1,48 @@
+.header {
+  &__inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 32px;
+
+    @include mobile {
+      margin-top: 20px;
+    }
+  }
+
+  &__nav {
+    &-list {
+      display: flex;
+      align-items: center;
+      column-gap: 32px;
+    }
+
+    &-link {
+      opacity: .6;
+      @include hover {
+        opacity: 1;
+      }
+    }
+  }
+
+  &__rating {
+    display: flex;
+    align-items: center;
+    column-gap: 8px;
+
+    @include tablet {
+      display: none;
+    }
+
+    &-title {
+      opacity: .6;
+    }
+
+    &-value {
+      padding: 8px;
+      background-color: var(--color-accent);
+      border-radius: var(--border-radius);
+      color: var(--color-light);
+    }
+  }
+}

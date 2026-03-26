@@ -1,0 +1,151 @@
+.hero {
+  &__inner {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    padding-top: 200px;
+
+    @include full-screen {
+      align-items: center;
+      justify-content: center;
+      padding-top: 150px;
+    }
+
+    @include full-screen-above {
+      align-items: center;
+      justify-content: center;
+      padding-top: 150px;
+    }
+
+    @include desktop {
+      padding-top: 100px;
+    }
+
+    @include tablet {
+      padding-top: 60px;
+    }
+  }
+
+  &__image {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+
+    @include full-screen {
+      display: none;
+    }
+
+    @include full-screen-above {
+      display: none;
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+
+    @include full-screen {
+      align-items: center;
+    }
+
+    @include full-screen-above {
+      align-items: center;
+    }
+  }
+
+  &__location {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    column-gap: 8px;
+    background-color: var(--color-accent);
+    border-radius: var(--border-radius);
+    padding: 10px 20px;
+    opacity: .8;
+    font-weight: 600;
+
+    &-text {
+      font-weight: 600;
+      color: var(--color-light);
+    }
+
+    @include tablet {
+      padding: 6px 16px;
+    }
+  }
+
+  &__title {
+    font-size: 64px;
+    padding-block: 20px 32px;
+    max-width: 537px;
+    font-weight: 700;
+
+    @include full-screen {
+      max-width: 650px;
+      text-align: center;
+    }
+
+    @include full-screen-above {
+      max-width: 650px;
+      text-align: center;
+    }
+
+    @include desktop {
+      font-size: 56px;
+      max-width: 500px;
+    }
+
+    @include tablet {
+      font-size: 36px;
+      padding-block: 16px 24px;
+    }
+  }
+
+  &__description {
+    font-size: 16px;
+    opacity: .6;
+    padding-bottom: 32px;
+    max-width: 557px;
+
+    @include full-screen {
+      text-align: center;
+    }
+
+    @include full-screen-above {
+      text-align: center;
+    }
+
+    @include tablet {
+      font-size: 14px;
+      padding-bottom: 24px;
+      max-width: 490px;
+    }
+  }
+
+  &__buttons {
+    display: flex;
+    align-items: center;
+    column-gap: 24px;
+
+    @include mobile {
+      column-gap: 16px;
+    }
+  }
+
+  &__button {
+    font-weight: 600;
+
+    @include mobile {
+      font-size: 14px;
+      padding: 12px 24px;
+      height: 40px;
+    }
+
+    &--transparent {
+      display: flex;
+      align-items: center;
+      column-gap: 8px;
+    }
+  }
+}
