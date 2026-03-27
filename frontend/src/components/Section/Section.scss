@@ -1,0 +1,57 @@
+.section {
+  margin-bottom: 120px;
+
+  @include mobile {
+    margin-bottom: 60px;
+  }
+
+  &:first-of-type {
+    margin-top: 360px;
+
+    @include full-screen {
+      margin-top: 100px;
+    }
+  }
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    row-gap: 8px;
+    padding-bottom: 32px;
+
+    @include mobile {
+      padding-bottom: 24px;
+    }
+
+    &-title {
+      @include desktop {
+        font-size: 32px;
+      }
+
+      @include mobile {
+        font-size: 24px;
+      }
+    }
+
+    &-subtitle {
+      color: #696B7C;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      column-gap: 12px;
+
+      @include mobile {
+        font-size: 14px;
+      }
+
+      &::after {
+        content: "";
+        display: block;
+        width: 52px;
+        height: 6px;
+        background: var(--color-accent);
+        border-radius: var(--border-radius);
+      }
+    }
+  }
+}

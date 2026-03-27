@@ -11,6 +11,16 @@
   }
 
   &__nav {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+
+    @include tablet {
+      position: static;
+      left: auto;
+      transform: none;
+    }
+
     &-list {
       display: flex;
       align-items: center;
