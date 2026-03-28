@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Header from "../../components/Header/Header.jsx";
 import Hero from "../../components/Hero/Hero.jsx";
 import Section from "../../components/Section/Section.jsx";
@@ -7,8 +9,19 @@ import Services from "../../components/Services/Services.jsx";
 import Reviews from "../../components/Reviews/Reviews.jsx";
 import Application from "../../components/Application/Application.jsx";
 import FAQ from "../../components/FAQ/FAQ.jsx";
+import Footer from "../../components/Footer/Footer.jsx";
 
 export default function Main() {
+    const location = useLocation();
+
+    useEffect(() => {
+        if (!location.hash) return;
+        const id = location.hash.slice(1);
+        if (!id) return;
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+    }, [location.pathname, location.hash]);
+
     return (
         <>
             <Header />
@@ -16,6 +29,7 @@ export default function Main() {
 
             <main className="content">
                 <Section
+                    id="how-it-works"
                     title={'Как это работает'}
                     subtitle={'01 - Процесс'}
                 >
@@ -23,6 +37,7 @@ export default function Main() {
                 </Section>
 
                 <Section
+                    id="gallery"
                     title={'Примеры установки'}
                     subtitle={'02 - Галерея'}
                 >
@@ -30,6 +45,7 @@ export default function Main() {
                 </Section>
 
                 <Section
+                    id="services"
                     title={'Наши услуги'}
                     subtitle={'03 - Ассортимент'}
                 >
@@ -37,6 +53,7 @@ export default function Main() {
                 </Section>
 
                 <Section
+                    id="reviews"
                     title={'Что говорят клиенты'}
                     subtitle={'04 - Отзывы'}
                 >
@@ -44,6 +61,7 @@ export default function Main() {
                 </Section>
 
                 <Section
+                    id="order"
                     title={'Оставьте заявку'}
                     subtitle={'04 - Заказать'}
                 >
@@ -51,18 +69,15 @@ export default function Main() {
                 </Section>
 
                 <Section
+                    id="faq"
                     title={'Частые вопросы'}
                     subtitle={'05 - FAQ'}
                 >
                     <FAQ/>
                 </Section>
 
-                <Section
-                    title={'Частые вопросы'}
-                    subtitle={'05 - FAQ'}
-                >
-                    <Application />
-                </Section>
+                <Footer />
+
             </main>
         </>
     )

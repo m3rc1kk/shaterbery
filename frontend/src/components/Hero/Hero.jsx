@@ -2,11 +2,12 @@ import ButtonLink from "../Button/ButtonLink.jsx";
 import arrowRight from "../../assets/images/hero/arrow-right.svg";
 import mapPin from "../../assets/images/hero/map-pin.svg";
 import heroImage from "../../assets/images/hero/Illustration.png";
+import { AVITO_URL } from "../../data/siteContent.js";
 
 export default function Hero() {
     return (
         <>
-            <div className="hero container">
+            <div className="hero container" id="hero">
                 <div className="hero__inner">
                     <div className="hero__body">
                         <div className="hero__location">
@@ -24,8 +25,8 @@ export default function Hero() {
                         </div>
 
                         <div className="hero__buttons">
-                            <ButtonLink to={'/'} className={'hero__button button__main'}>Заказать</ButtonLink>
-                            <ButtonLink to={'/'} className={'hero__button hero__button--transparent button__main button--transparent'}>Авито <img src={arrowRight} width={7} height={10}
+                            <ButtonLink to={'/#order'} className={'hero__button button__main'}>Заказать</ButtonLink>
+                            <ButtonLink to={AVITO_URL} className={'hero__button hero__button--transparent button__main button--transparent'}>Авито <img src={arrowRight} width={7} height={10}
                                                                                                            loading='lazy' alt="Стрелка" className="hero__button-icon"/>
                             </ButtonLink>
                         </div>

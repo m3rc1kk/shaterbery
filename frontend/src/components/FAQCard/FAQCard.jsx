@@ -1,12 +1,13 @@
 import arrowDown from '../../assets/images/faq/arrow-down.svg';
+import ButtonLink from "../Button/ButtonLink.jsx";
 
-export default function FAQCard({ id, question, answer, isOpen, onToggle }) {
-    const panelId = `faq-panel-${id}`;
-    const triggerId = `faq-trigger-${id}`;
+export default function FAQCard({ id, question, answer, isOpen, onToggle, idPrefix = '' }) {
+    const panelId = `${idPrefix}faq-panel-${id}`;
+    const triggerId = `${idPrefix}faq-trigger-${id}`;
 
     return (
         <li className="faq-card">
-            <button
+            <ButtonLink
                 type="button"
                 className="faq-card__trigger"
                 id={triggerId}
@@ -27,7 +28,7 @@ export default function FAQCard({ id, question, answer, isOpen, onToggle }) {
                             : 'faq-card__arrow'
                     }
                 />
-            </button>
+            </ButtonLink>
             <div
                 id={panelId}
                 role="region"

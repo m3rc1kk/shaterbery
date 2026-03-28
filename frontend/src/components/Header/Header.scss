@@ -1,4 +1,9 @@
 .header {
+  a.header__logo {
+    text-decoration: none;
+    color: inherit;
+  }
+
   &__inner {
     display: flex;
     justify-content: space-between;
