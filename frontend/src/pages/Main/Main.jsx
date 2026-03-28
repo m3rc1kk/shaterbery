@@ -6,6 +6,7 @@ import Gallery from "../../components/Gallery/Gallery.jsx";
 import Services from "../../components/Services/Services.jsx";
 import Reviews from "../../components/Reviews/Reviews.jsx";
 import Application from "../../components/Application/Application.jsx";
+import FAQ from "../../components/FAQ/FAQ.jsx";
 
 export default function Main() {
     return (
@@ -50,8 +51,15 @@ export default function Main() {
                 </Section>
 
                 <Section
-                    title={'Оставьте заявку'}
-                    subtitle={'04 - Заказать'}
+                    title={'Частые вопросы'}
+                    subtitle={'05 - FAQ'}
+                >
+                    <FAQ/>
+                </Section>
+
+                <Section
+                    title={'Частые вопросы'}
+                    subtitle={'05 - FAQ'}
                 >
                     <Application />
                 </Section>

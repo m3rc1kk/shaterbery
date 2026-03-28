@@ -1,0 +1,125 @@
+.faq-card {
+  margin: 0;
+  padding-block: 24px;
+  border-bottom: var(--border);
+
+  @include mobile {
+    padding-block: 16px
+  }
+
+  &__content {
+    @include mobile {
+      font-size: 14px;
+    }
+  }
+
+  &__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    color: inherit;
+
+    @include hover {
+      .faq-card__arrow {
+        opacity: 1;
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 4px;
+      border-radius: 2px;
+    }
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--color-dark);
+    flex: 1;
+    min-width: 0;
+
+    @include mobile {
+      font-size: 14px;
+    }
+  }
+
+  &__arrow {
+    flex-shrink: 0;
+    display: block;
+    opacity: .6;
+    transition:
+      transform .4s cubic-bezier(.33, 1, .68, 1),
+      opacity var(--transition-duration);
+
+    &--open {
+      transform: rotate(180deg);
+    }
+
+    @include mobile {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  &__panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    min-height: 0;
+    overflow: hidden;
+    margin-top: 0;
+    transition:
+      grid-template-rows .4s cubic-bezier(.33, 1, .68, 1),
+      margin-top .4s cubic-bezier(.33, 1, .68, 1);
+
+    @media (prefers-reduced-motion: reduce) {
+      transition-duration: .01ms;
+    }
+
+    &--open {
+      grid-template-rows: 1fr;
+      margin-top: 12px;
+    }
+  }
+
+  &__panel-inner {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  &__answer {
+    margin: 0;
+    padding-top: 4px;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--color-dark-opacity);
+    opacity: 0;
+    transition: opacity .32s cubic-bezier(.33, 1, .68, 1);
+    transition-delay: 0s;
+
+    @include mobile {
+      font-size: 14px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition-duration: .01ms;
+    }
+  }
+
+  &__panel--open &__answer {
+    opacity: 1;
+    transition-delay: .08s;
+  }
+}
