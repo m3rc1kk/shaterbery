@@ -1,7 +1,7 @@
 .how-it-works {
   &__list {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: space-between;
     column-gap: 40px;
 
@@ -23,7 +23,6 @@
 
   &__item {
     max-width: 288px;
-    height: 166px;
     width: 100%;
     padding: 16px;
     border-radius: var(--border-radius);

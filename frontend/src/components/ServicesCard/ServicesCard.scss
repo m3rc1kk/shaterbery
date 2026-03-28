@@ -1,5 +1,4 @@
 .services-card {
-  min-width: 0;
   width: 100%;
   height: 100%;
 
@@ -8,7 +7,6 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-
     border-radius: var(--border-radius);
     border: var(--border);
   }
@@ -30,7 +28,6 @@
     flex-direction: column;
     gap: 16px;
     flex: 1;
-    min-height: 0;
 
     @include mobile {
       padding: 14px 12px;

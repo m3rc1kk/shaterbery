@@ -4,6 +4,7 @@ import Section from "../../components/Section/Section.jsx";
 import HowItWorks from "../../components/HowItWorks/HowItWorks.jsx";
 import Gallery from "../../components/Gallery/Gallery.jsx";
 import Services from "../../components/Services/Services.jsx";
+import Reviews from "../../components/Reviews/Reviews.jsx";
 
 export default function Main() {
     return (
@@ -34,10 +35,17 @@ export default function Main() {
                 </Section>
 
                 <Section
-                    title={'Наши услуги'}
-                    subtitle={'03 - Ассортимент'}
+                    title={'Что говорят клиенты'}
+                    subtitle={'04 - Отзывы'}
                 >
-                    <Services />
+                    <Reviews />
+                </Section>
+
+                <Section
+                    title={'Что говорят клиенты'}
+                    subtitle={'04 - Отзывы'}
+                >
+                    <Reviews />
                 </Section>
             </main>
         </>
