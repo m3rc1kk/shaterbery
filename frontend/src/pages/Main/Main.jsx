@@ -5,6 +5,7 @@ import HowItWorks from "../../components/HowItWorks/HowItWorks.jsx";
 import Gallery from "../../components/Gallery/Gallery.jsx";
 import Services from "../../components/Services/Services.jsx";
 import Reviews from "../../components/Reviews/Reviews.jsx";
+import Application from "../../components/Application/Application.jsx";
 
 export default function Main() {
     return (
@@ -42,10 +43,17 @@ export default function Main() {
                 </Section>
 
                 <Section
-                    title={'Что говорят клиенты'}
-                    subtitle={'04 - Отзывы'}
+                    title={'Оставьте заявку'}
+                    subtitle={'04 - Заказать'}
                 >
-                    <Reviews />
+                    <Application />
+                </Section>
+
+                <Section
+                    title={'Оставьте заявку'}
+                    subtitle={'04 - Заказать'}
+                >
+                    <Application />
                 </Section>
             </main>
         </>
