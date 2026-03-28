@@ -3,6 +3,7 @@ import Hero from "../../components/Hero/Hero.jsx";
 import Section from "../../components/Section/Section.jsx";
 import HowItWorks from "../../components/HowItWorks/HowItWorks.jsx";
 import Gallery from "../../components/Gallery/Gallery.jsx";
+import Services from "../../components/Services/Services.jsx";
 
 export default function Main() {
     return (
@@ -26,10 +27,17 @@ export default function Main() {
                 </Section>
 
                 <Section
-                    title={'Примеры установки'}
-                    subtitle={'02 - Галерея'}
+                    title={'Наши услуги'}
+                    subtitle={'03 - Ассортимент'}
                 >
-                    <Gallery />
+                    <Services />
+                </Section>
+
+                <Section
+                    title={'Наши услуги'}
+                    subtitle={'03 - Ассортимент'}
+                >
+                    <Services />
                 </Section>
             </main>
         </>
