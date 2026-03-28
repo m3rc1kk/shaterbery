@@ -21,7 +21,7 @@ export default function HowItWorks() {
                             </header>
 
                             <div className="how-it-works__body">
-                                <p>Оставляете заявку на сайте <br />
+                                <p>Оставляете заявку на сайте
                                     или пишите на авито -
                                     отвечаем быстро.</p>
                             </div>

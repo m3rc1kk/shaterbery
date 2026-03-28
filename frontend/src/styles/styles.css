@@ -769,7 +769,128 @@ h2 {
 }
 @media (max-width: 767px) {
   .how-it-works__body {
-    max-width: 100%;
+    max-width: 461px;
+  }
+}
+
+@keyframes gallery-main-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes gallery-preview-in {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 0.68;
+  }
+}
+.gallery__inner {
+  position: relative;
+}
+.gallery__buttons {
+  display: flex;
+  align-items: center;
+  column-gap: 16px;
+  position: absolute;
+  right: 0;
+  top: -50px;
+}
+@media (max-width: 767px) {
+  .gallery__buttons {
+    column-gap: 8px;
+  }
+}
+@media (max-width: 767px) {
+  .gallery__button-image {
+    width: 10px;
+    height: auto;
+  }
+}
+.gallery__track {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: auto auto;
+  gap: clamp(12px, 2vw, 20px);
+  width: 100%;
+}
+@media (max-width: 767px) {
+  .gallery__track {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.gallery__thumb {
+  position: relative;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  width: 100%;
+  transition: transform 0.45s cubic-bezier(0.33, 1, 0.68, 1), box-shadow 0.45s ease;
+}
+.gallery__thumb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.gallery__thumb:hover {
+  transform: scale(1.02);
+}
+.gallery__thumb:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+.gallery__preview {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2/1;
+  object-fit: cover;
+  border-radius: var(--border-radius);
+  opacity: 0.68;
+  transition: opacity 0.35s ease;
+  animation: gallery-preview-in 0.4s ease-out both;
+}
+.gallery__thumb:hover .gallery__preview {
+  opacity: 0.95;
+}
+.gallery__main {
+  grid-column: 1/-1;
+  grid-row: 1;
+  min-width: 0;
+  max-width: 100%;
+}
+.gallery__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2/1;
+  object-fit: cover;
+  border-radius: var(--border-radius);
+  animation: gallery-main-in 0.62s cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gallery__image, .gallery__preview {
+    animation: none;
+  }
+  .gallery__thumb {
+    transition: none;
+  }
+  .gallery__thumb:hover {
+    transform: none;
+  }
+  .gallery__preview {
+    transition: none;
   }
 }
 
