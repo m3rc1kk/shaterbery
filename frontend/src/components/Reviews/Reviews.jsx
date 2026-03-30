@@ -7,7 +7,7 @@ import avatarDefault from '../../assets/images/reviews/avatar.png';
 const MOBILE_MEDIA = '(max-width: 767px)';
 
 const MAX_REVIEWS_DESKTOP = 6;
-const MAX_REVIEWS_MOBILE = 4;
+const MAX_REVIEWS_MOBILE_INITIAL = 1;
 
 function useIsMobileMatch() {
     const [isMobile, setIsMobile] = useState(() =>
@@ -96,8 +96,12 @@ const benchmarkFirstId = benchmarkFirstReview.id;
 
 export default function Reviews() {
     const isMobile = useIsMobileMatch();
-    const limit = isMobile ? MAX_REVIEWS_MOBILE : MAX_REVIEWS_DESKTOP;
+    const [showAllMobile, setShowAllMobile] = useState(false);
+    const limit = isMobile
+        ? (showAllMobile ? MAX_REVIEWS_DESKTOP : MAX_REVIEWS_MOBILE_INITIAL)
+        : MAX_REVIEWS_DESKTOP;
     const visibleReviews = reviews.slice(0, limit);
+    const hasMobileToggle = isMobile && reviews.length > MAX_REVIEWS_MOBILE_INITIAL;
 
     return (
         <div className="reviews">
@@ -111,6 +115,15 @@ export default function Reviews() {
                     />
                 ))}
             </div>
+            {hasMobileToggle ? (
+                <button
+                    type="button"
+                    className="reviews__more"
+                    onClick={() => setShowAllMobile((v) => !v)}
+                >
+                    {showAllMobile ? 'Скрыть' : 'Смотреть еще'}
+                </button>
+            ) : null}
         </div>
     );
 }
