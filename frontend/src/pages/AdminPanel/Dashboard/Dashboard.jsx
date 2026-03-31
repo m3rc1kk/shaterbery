@@ -1,6 +1,7 @@
 import Sidebar from "../../../components/AdminPanel/Sidebar/Sidebar.jsx";
 import DashboardCard from "../../../components/AdminPanel/DashboardCard/DashboardCard.jsx";
 import Graph from "../../../components/AdminPanel/Graph/Graph.jsx";
+import PopularGraph from "../../../components/AdminPanel/PopularGraph/PopularGraph.jsx";
 import moneyIcon from '../../../assets/images/admin-panel/dashboard/Card/money.svg'
 import chevronDownIcon from '../../../assets/images/admin-panel/dashboard/Card/chevrons-down.svg'
 import chevronUpIcon from '../../../assets/images/admin-panel/dashboard/Card/chevrons-up.svg'
@@ -104,7 +105,7 @@ export default function Dashboard() {
 
                     <div className="dashboard__lastline">
                         <div className="dashboard__popular">
-
+                            <PopularGraph />
                         </div>
 
                         <div className="dashboard__recently-applications">

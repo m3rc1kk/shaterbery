@@ -1,9 +1,15 @@
 .sidebar {
+  @include tablet-above {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+
   &__burger-menu {
     position: fixed;
     top: 24px;
     left: 24px;
-    z-index: 20;
+    z-index: 11;
   }
 
   &__header {

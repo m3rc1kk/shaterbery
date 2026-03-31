@@ -1847,11 +1847,18 @@ h2 {
   opacity: 0.4;
 }
 
+@media (min-width: 1024px) {
+  .sidebar {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+}
 .sidebar__burger-menu {
   position: fixed;
   top: 24px;
   left: 24px;
-  z-index: 20;
+  z-index: 11;
 }
 .sidebar__header {
   background: var(--color-light);
@@ -2157,9 +2164,11 @@ h2 {
 
 .graph {
   width: 100%;
+  min-width: 0;
   background: var(--color-light);
   border-radius: var(--border-radius);
   padding: 22px 24px 18px;
+  z-index: 10;
 }
 @media (max-width: 1440px) {
   .graph {
@@ -2233,6 +2242,101 @@ h2 {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.popular-graph {
+  width: 100%;
+  min-width: 0;
+  background-color: var(--color-light);
+  padding: 32px;
+  border-radius: var(--border-radius);
+  box-sizing: border-box;
+  position: relative;
+  z-index: 10;
+}
+@media (max-width: 1440px) {
+  .popular-graph {
+    padding: 22px 24px;
+  }
+}
+@media (max-width: 767px) {
+  .popular-graph {
+    padding: 16px;
+  }
+}
+.popular-graph__header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 12px;
+}
+.popular-graph__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-dark);
+  margin: 0;
+}
+@media (max-width: 767px) {
+  .popular-graph__title {
+    font-size: 14px;
+  }
+}
+.popular-graph__indicator {
+  width: 52px;
+  height: 6px;
+  background-color: var(--color-accent);
+  border-radius: var(--border-radius);
+}
+@media (max-width: 767px) {
+  .popular-graph__indicator {
+    display: none;
+  }
+}
+.popular-graph__list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+@media (max-width: 767px) {
+  .popular-graph__list {
+    gap: 16px;
+  }
+}
+.popular-graph__item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: opacity 0.2s ease;
+}
+.popular-graph__item:hover .popular-graph__fill {
+  filter: brightness(0.9);
+}
+.popular-graph__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.popular-graph__name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-dark);
+}
+.popular-graph__count {
+  font-size: 14px;
+  color: rgba(5, 9, 37, 0.45);
+}
+.popular-graph__track {
+  width: 100%;
+  height: 6px;
+  background-color: rgba(51, 146, 255, 0.14);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.popular-graph__fill {
+  height: 100%;
+  background-color: var(--color-accent);
+  border-radius: 4px;
+  transition: width 0.5s ease-in-out, filter 0.2s ease;
 }
 
 .sign-in {
@@ -2314,6 +2418,10 @@ h2 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px;
+  min-width: 0;
+}
+.dashboard__graphs > * {
+  min-width: 0;
 }
 @media (max-width: 1440px) {
   .dashboard__graphs {
@@ -2322,6 +2430,26 @@ h2 {
 }
 @media (max-width: 1023px) {
   .dashboard__graphs {
+    grid-template-columns: 1fr;
+  }
+}
+.dashboard__lastline {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  min-width: 0;
+}
+.dashboard__lastline > * {
+  min-width: 0;
+}
+@media (max-width: 1440px) {
+  .dashboard__lastline {
+    gap: 16px;
+  }
+}
+@media (max-width: 1023px) {
+  .dashboard__lastline {
     grid-template-columns: 1fr;
   }
 }

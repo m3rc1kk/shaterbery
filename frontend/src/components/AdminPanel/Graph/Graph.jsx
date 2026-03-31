@@ -84,6 +84,7 @@ export default function Graph({
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                events: ['mousemove', 'mouseout', 'click', 'touchstart', 'touchmove'],
                 layout: {
                     padding: {
                         left: 0,
@@ -135,10 +136,14 @@ export default function Graph({
                         }
                     },
                     y: {
+                        afterFit: (scale) => {
+                            scale.width = 0
+                        },
                         grid: {
                             color: 'rgba(5, 9, 37, .1)',
                             borderDash: [5, 5],
-                            drawBorder: false
+                            drawBorder: false,
+                            drawTicks: false
                         },
                         border: {
                             display: false
@@ -154,7 +159,8 @@ export default function Graph({
                 },
                 interaction: {
                     intersect: false,
-                    mode: 'index'
+                    mode: 'nearest',
+                    axis: 'x'
                 }
             }
         })
