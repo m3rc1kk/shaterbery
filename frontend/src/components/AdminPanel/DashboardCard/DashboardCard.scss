@@ -1,0 +1,88 @@
+.dashboard-card {
+  width: 100%;
+  background: var(--color-light);
+  border-radius: var(--border-radius);
+  position: relative;
+
+  &__inner {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+
+    @include mobile {
+      padding: 16px;
+    }
+  }
+
+  &__title {
+    opacity: .4;
+
+  }
+
+  &__value {
+    padding-block: 16px;
+    font-size: 32px;
+
+    @include mobile {
+      font-size: 28px;
+    }
+  }
+
+  &__additional-value {
+    &--positive {
+      color: #2da74e;
+    }
+
+    &--negative {
+      color: #d14343;
+    }
+
+    &--accent {
+      color: var(--color-accent);
+    }
+
+    &-wrapper {
+      display: flex;
+      align-items: center;
+      column-gap: 4px;
+    }
+
+    &-icon {
+      flex-shrink: 0;
+    }
+
+    &-number {
+      line-height: 1;
+    }
+
+    &-suffix {
+      line-height: 1;
+
+      &--hide-hd1440 {
+        @include hd1440 {
+          display: none;
+        }
+
+        @include tablet {
+          display: block;
+        }
+      }
+    }
+  }
+
+  &__icon {
+    position: absolute;
+    right: 24px;
+    top: 24px;
+
+    @include hd1440 {
+      width: 28px;
+      height: 28px;
+    }
+
+    @include desktop {
+      display: none;
+    }
+
+  }
+}

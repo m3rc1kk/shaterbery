@@ -18,6 +18,12 @@
     width: 85%;
     border-bottom: var(--border);
 
+    &-button {
+      font-weight: 600;
+      padding-inline: 24px;
+      font-size: 14px;
+    }
+
     &-title {
       display: flex;
       align-items: center;

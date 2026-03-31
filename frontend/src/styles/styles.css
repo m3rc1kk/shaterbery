@@ -1865,6 +1865,11 @@ h2 {
   width: 85%;
   border-bottom: var(--border);
 }
+.sidebar__header-button {
+  font-weight: 600;
+  padding-inline: 24px;
+  font-size: 14px;
+}
 .sidebar__header-title {
   display: flex;
   align-items: center;
@@ -2072,6 +2077,84 @@ h2 {
   }
 }
 
+.dashboard-card {
+  width: 100%;
+  background: var(--color-light);
+  border-radius: var(--border-radius);
+  position: relative;
+}
+.dashboard-card__inner {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+}
+@media (max-width: 767px) {
+  .dashboard-card__inner {
+    padding: 16px;
+  }
+}
+.dashboard-card__title {
+  opacity: 0.4;
+}
+.dashboard-card__value {
+  padding-block: 16px;
+  font-size: 32px;
+}
+@media (max-width: 767px) {
+  .dashboard-card__value {
+    font-size: 28px;
+  }
+}
+.dashboard-card__additional-value--positive {
+  color: #2da74e;
+}
+.dashboard-card__additional-value--negative {
+  color: #d14343;
+}
+.dashboard-card__additional-value--accent {
+  color: var(--color-accent);
+}
+.dashboard-card__additional-value-wrapper {
+  display: flex;
+  align-items: center;
+  column-gap: 4px;
+}
+.dashboard-card__additional-value-icon {
+  flex-shrink: 0;
+}
+.dashboard-card__additional-value-number {
+  line-height: 1;
+}
+.dashboard-card__additional-value-suffix {
+  line-height: 1;
+}
+@media (max-width: 1440px) {
+  .dashboard-card__additional-value-suffix--hide-hd1440 {
+    display: none;
+  }
+}
+@media (max-width: 1023px) {
+  .dashboard-card__additional-value-suffix--hide-hd1440 {
+    display: block;
+  }
+}
+.dashboard-card__icon {
+  position: absolute;
+  right: 24px;
+  top: 24px;
+}
+@media (max-width: 1440px) {
+  .dashboard-card__icon {
+    width: 28px;
+    height: 28px;
+  }
+}
+@media (max-width: 1280px) {
+  .dashboard-card__icon {
+    display: none;
+  }
+}
+
 .sign-in {
   display: flex;
   align-items: center;
@@ -2116,16 +2199,35 @@ h2 {
 
 .dashboard {
   background: var(--color-light-alt);
-  height: 100vh;
-  width: 88%;
+  height: 100%;
+  width: 85%;
   margin-left: auto;
-  padding-top: 141px;
-  padding-left: 32px;
+  padding: 141px 32px 32px 32px;
 }
 @media (max-width: 1023px) {
   .dashboard {
     width: 100%;
+    padding-top: 72px;
   }
+}
+.dashboard__card-list {
+  display: flex;
+  justify-content: space-between;
+  column-gap: 24px;
+}
+@media (max-width: 1440px) {
+  .dashboard__card-list {
+    column-gap: 16px;
+  }
+}
+@media (max-width: 1023px) {
+  .dashboard__card-list {
+    flex-direction: column;
+    row-gap: 16px;
+  }
+}
+.dashboard__card-item {
+  width: 100%;
 }
 
 /*# sourceMappingURL=styles.css.map */
