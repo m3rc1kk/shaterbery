@@ -1,5 +1,6 @@
 import Sidebar from "../../../components/AdminPanel/Sidebar/Sidebar.jsx";
 import DashboardCard from "../../../components/AdminPanel/DashboardCard/DashboardCard.jsx";
+import Graph from "../../../components/AdminPanel/Graph/Graph.jsx";
 import moneyIcon from '../../../assets/images/admin-panel/dashboard/Card/money.svg'
 import chevronDownIcon from '../../../assets/images/admin-panel/dashboard/Card/chevrons-down.svg'
 import chevronUpIcon from '../../../assets/images/admin-panel/dashboard/Card/chevrons-up.svg'
@@ -57,6 +58,59 @@ export default function Dashboard() {
                                 chevron={bookmarkIcon} />
                         </li>
                     </ul>
+
+                    <div className="dashboard__graphs">
+                        <Graph
+                            title="Прибыль"
+                            color="#30BE0C"
+                            fillTopColor="rgba(48, 190, 12, 0.24)"
+                            fillBottomColor="rgba(48, 190, 12, 0)"
+                            periods={{
+                                week: {
+                                    labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+                                    values: [42, 47, 45, 58, 52, 61, 56]
+                                },
+                                month: {
+                                    labels: ['1', '5', '10', '15', '20', '25', '30'],
+                                    values: [38, 49, 44, 67, 50, 59, 54]
+                                },
+                                year: {
+                                    labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл'],
+                                    values: [45, 52, 46, 71, 49, 60, 54]
+                                }
+                            }}
+                        />
+                        <Graph
+                            title="Заявки"
+                            color="#3392FF"
+                            fillTopColor="rgba(51, 146, 255, 0.24)"
+                            fillBottomColor="rgba(51, 146, 255, 0)"
+                            periods={{
+                                week: {
+                                    labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+                                    values: [45, 53, 49, 60, 55, 63, 57]
+                                },
+                                month: {
+                                    labels: ['1', '5', '10', '15', '20', '25', '30'],
+                                    values: [40, 52, 47, 70, 51, 59, 55]
+                                },
+                                year: {
+                                    labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл'],
+                                    values: [48, 55, 49, 73, 53, 62, 56]
+                                }
+                            }}
+                        />
+                    </div>
+
+                    <div className="dashboard__lastline">
+                        <div className="dashboard__popular">
+
+                        </div>
+
+                        <div className="dashboard__recently-applications">
+
+                        </div>
+                    </div>
                 </div>
             </div>
         </>

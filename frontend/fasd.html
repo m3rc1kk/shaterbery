@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>График Прибыли</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Базовые стили для страницы */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f7f7f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Стили карточки графика */
+        .chart-card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            padding: 24px 32px;
+            width: 800px;
+            box-sizing: border-box;
+        }
+
+        /* Шапка: Заголовок и переключатели */
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .chart-title-wrapper {
+            display: flex;
+            align-items: center;
+        }
+
+        .chart-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #222;
+            margin: 0;
+        }
+
+        /* Синяя линия рядом с заголовком */
+        .title-indicator {
+            width: 45px;
+            height: 6px;
+            background-color: #4da3ff;
+            border-radius: 4px;
+            margin-left: 16px;
+        }
+
+        /* Переключатели периодов */
+        .period-controls {
+            display: flex;
+            gap: 16px;
+        }
+
+        .period-btn {
+            background: none;
+            border: none;
+            font-size: 14px;
+            color: #999;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .period-btn:hover {
+            color: #555;
+        }
+
+        .period-btn.active {
+            background-color: #cce5ff;
+            color: #4da3ff;
+        }
+
+        /* Контейнер для самого canvas */
+        .canvas-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chart-card">
+        <div class="chart-header">
+            <div class="chart-title-wrapper">
+                <h2 class="chart-title">Прибыль</h2>
+                <div class="title-indicator"></div>
+            </div>
+            <div class="period-controls">
+                <button class="period-btn active">Неделя</button>
+                <button class="period-btn">Месяц</button>
+                <button class="period-btn">Год</button>
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="profitChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('profitChart').getContext('2d');
+
+            // Создаем градиент для заливки под графиком
+            let gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(50, 205, 50, 0.25)'); // Светло-зеленый сверху
+            gradient.addColorStop(1, 'rgba(50, 205, 50, 0.0)');  // Прозрачный снизу
+
+            const data = {
+                labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл'],
+                datasets: [{
+                    label: 'Прибыль',
+                    // Примерные данные, повторяющие изгибы с картинки
+                    data: [45, 52, 46, 70, 50, 62, 54],
+                    borderColor: '#32c72f', // Ярко-зеленый цвет линии
+                    borderWidth: 3,
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.4, // Сглаживание кривой
+                    
+                    // Настройка точек: показываем только последнюю
+                    pointRadius: [0, 0, 0, 0, 0, 0, 7], 
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#32c72f',
+                    pointBorderWidth: 4,
+                    pointHoverRadius: 8
+                }]
+            };
+
+            const config = {
+                type: 'line',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false // Скрываем стандартную легенду
+                        },
+                        tooltip: {
+                            enabled: false // Отключаем всплывающие подсказки для чистоты интерфейса
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false, // Убираем вертикальные линии сетки
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#a0aab5', // Цвет подписей месяцев
+                                font: {
+                                    size: 14
+                                },
+                                padding: 10
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: '#e8ecef', // Цвет пунктирной сетки
+                                borderDash: [5, 5], // Настройка пунктира (длина штриха, длина пробела)
+                                drawBorder: false,
+                            },
+                            ticks: {
+                                display: false, // Скрываем числа на оси Y
+                            },
+                            min: 30, // Настройка диапазона, чтобы график висел в воздухе
+                            max: 80
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index',
+                    },
+                }
+            };
+
+            // Инициализация графика
+            new Chart(ctx, config);
+        });
+    </script>
+
+</body>
+</html>
