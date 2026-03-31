@@ -1,0 +1,12 @@
+.dashboard {
+  background: var(--color-light-alt);
+  height: 100vh;
+  width: 88%;
+  margin-left: auto;
+  padding-top: 141px;
+  padding-left: 32px;
+
+  @include tablet {
+    width: 100%;
+  }
+}
