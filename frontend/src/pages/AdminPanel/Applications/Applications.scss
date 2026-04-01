@@ -1,0 +1,173 @@
+.applications {
+  background: var(--color-light-alt);
+  height: 100vh;
+  width: 85%;
+  margin-left: auto;
+  padding: 141px 32px 32px 32px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  @include tablet {
+    width: 100%;
+    padding-top: 72px;
+  }
+
+  @include mobile {
+    padding: 72px 16px 24px;
+  }
+
+  &__inner {
+    position: relative;
+
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    row-gap: 24px;
+    overflow: hidden;
+  }
+
+  &__header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    column-gap: 24px;
+
+    @include tablet {
+      column-gap: 12px;
+    }
+
+    @include mobile {
+      flex-direction: column;
+      align-items: stretch;
+      row-gap: 12px;
+    }
+  }
+
+  &__table-wrap {
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+
+    @include tablet {
+      touch-action: pan-x pan-y;
+      scrollbar-gutter: stable;
+    }
+  }
+
+  &__input {
+    &-search {
+      width: 85%;
+      border: var(--border);
+      border-radius: var(--border-radius);
+      padding: 11px 14px;
+      outline: none;
+
+      @include desktop {
+        width: 60%;
+      }
+
+      @include mobile {
+        width: 100%;
+      }
+    }
+
+    &-select {
+      width: 13%;
+      border: var(--border);
+      border-radius: var(--border-radius);
+      padding: 11px 14px;
+      outline: none;
+      background: var(--color-light);
+
+      @include desktop {
+        width: 40%;
+      }
+
+      @include mobile {
+        width: 100%;
+      }
+
+      &--table {
+        width: 100%;
+        padding: 11px 14px;
+
+      }
+    }
+  }
+
+  &__table {
+    width: 100%;
+    max-width: 100%;
+    background: var(--color-light);
+    border-radius: var(--border-radius);
+    border: var(--border);
+    padding-inline: 24px;
+    padding-bottom: 12px;
+    border-spacing: 0 16px;
+
+    @include tablet {
+      min-width: 720px;
+      padding-inline: 16px;
+    }
+  }
+
+  &__th {
+    text-align: start;
+    opacity: .4;
+    font-weight: 600;
+    padding-block: 0;
+    width: 14%;
+
+    @include tablet {
+      white-space: nowrap;
+    }
+  }
+
+  &__tbody {
+    padding-left: 24px;
+  }
+
+  &__td {
+    vertical-align: top;
+  }
+
+  &__tbody td:last-child {
+    vertical-align: top;
+  }
+
+  &__client {
+    &-title {
+      font-weight: 600;
+    }
+    &-phone {
+      opacity: .4;
+    }
+  }
+
+
+  &__tr {
+    position: relative;
+
+    &-line {
+      content: "";
+      display: block;
+      width: 100%;
+      height: 1px;
+      background: rgba(32, 35, 48, 0.1);
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+    }
+
+    &:last-child::after {
+      display: none;
+    }
+  }
+
+}

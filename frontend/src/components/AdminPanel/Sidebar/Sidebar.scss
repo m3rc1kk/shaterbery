@@ -1,11 +1,6 @@
 .sidebar {
-  @include tablet-above {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-  }
-
   &__burger-menu {
+    pointer-events: auto;
     position: fixed;
     top: 24px;
     left: 24px;
@@ -13,6 +8,7 @@
   }
 
   &__header {
+    pointer-events: auto;
     background: var(--color-light);
     display: flex;
     align-items: center;
@@ -23,6 +19,7 @@
     right: 0;
     width: 85%;
     border-bottom: var(--border);
+    z-index: 10;
 
     &-button {
       font-weight: 600;
@@ -51,6 +48,7 @@
   }
 
   &__menu {
+    pointer-events: auto;
     background: var(--color-light);
     padding: 32px;
     display: flex;

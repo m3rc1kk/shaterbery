@@ -1,9 +1,15 @@
 .dashboard {
   background: var(--color-light-alt);
-  height: 100%;
   width: 85%;
   margin-left: auto;
   padding: 141px 32px 32px 32px;
+  height: 100vh;
+  max-height: 100vh;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 
   @include tablet {
     width: 100%;
@@ -11,6 +17,7 @@
   }
 
   &__card {
+
     &-list {
       display: flex;
       justify-content: space-between;
@@ -58,6 +65,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 24px;
     min-width: 0;
+    align-items: stretch;
 
     > * {
       min-width: 0;
@@ -69,6 +77,263 @@
 
     @include tablet {
       grid-template-columns: 1fr;
+    }
+  }
+
+  &__popular {
+    min-width: 0;
+    height: 359px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+
+    .popular-graph {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      height: 100%;
+
+      &__list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+
+    @include tablet {
+      height: auto;
+      min-height: 359px;
+
+      .popular-graph {
+        height: auto;
+        min-height: 280px;
+
+        &__list {
+          overflow-y: visible;
+        }
+      }
+    }
+  }
+
+  &__recently-applications {
+    min-width: 0;
+    height: 359px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+
+    @include tablet {
+      height: auto;
+      min-height: 359px;
+    }
+  }
+}
+
+.recent-apps {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-light);
+  padding: 32px;
+  border-radius: var(--border-radius);
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+
+  @include hd1440 {
+    padding: 22px 24px;
+  }
+
+  @include mobile {
+    padding: 16px;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    margin-bottom: 24px;
+    gap: 12px;
+  }
+
+  &__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-dark);
+    margin: 0;
+
+    @include mobile {
+      font-size: 14px;
+    }
+  }
+
+  &__indicator {
+    width: 52px;
+    height: 6px;
+    background-color: var(--color-accent);
+    border-radius: var(--border-radius);
+
+    @include mobile {
+      display: none;
+    }
+  }
+
+  &__table-wrap {
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+
+    @include mobile {
+      flex: 0 1 auto;
+      overflow-x: auto;
+      overflow-y: visible;
+      overscroll-behavior-x: contain;
+      touch-action: pan-x pan-y;
+      scrollbar-gutter: stable;
+    }
+  }
+
+  &__table {
+    width: 100%;
+    min-width: 0;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 14px;
+
+    @include mobile {
+      min-width: 520px;
+      width: max-content;
+      max-width: none;
+      table-layout: auto;
+    }
+  }
+
+  &__th {
+    text-align: start;
+    font-weight: 600;
+    color: var(--color-dark);
+    opacity: 0.4;
+    padding: 0 10px 10px 0;
+    vertical-align: bottom;
+
+    &:first-child {
+      width: 36%;
+    }
+
+    &:nth-child(2) {
+      width: 30%;
+    }
+
+    &:nth-child(3) {
+      width: 16%;
+    }
+
+    &:last-child {
+      width: 18%;
+      padding-right: 0;
+    }
+
+    @include mobile {
+      white-space: nowrap;
+
+      &:first-child {
+        width: auto;
+        min-width: 120px;
+      }
+
+      &:nth-child(2) {
+        width: auto;
+        min-width: 132px;
+      }
+
+      &:nth-child(3) {
+        width: auto;
+        min-width: 72px;
+      }
+
+      &:last-child {
+        width: auto;
+        min-width: 96px;
+        padding-right: 10px;
+      }
+    }
+  }
+
+  &__td {
+    padding: 10px 10px 10px 0;
+    vertical-align: middle;
+    color: var(--color-dark);
+
+    &:last-child {
+      padding-right: 0;
+    }
+
+    @include mobile {
+      &:last-child {
+        padding-right: 10px;
+      }
+    }
+  }
+
+  &__client {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__client-name {
+    font-weight: 600;
+  }
+
+  &__client-phone {
+    font-size: 13px;
+    color: var(--color-dark);
+    opacity: 0.4;
+  }
+
+  &__price {
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  &__status {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: var(--border-radius);
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    @include mobile {
+      max-width: none;
+      overflow: visible;
+      text-overflow: clip;
+    }
+
+    &--new {
+      color: var(--color-dark-opacity);
+      background: rgba(5, 9, 37, 0.06);
+    }
+
+    &--inwork {
+      color: var(--color-accent);
+      background: rgba(51, 146, 255, 0.14);
+    }
+
+    &--closed {
+      color: var(--color-green);
+      background: rgba(48, 190, 12, 0.14);
     }
   }
 }

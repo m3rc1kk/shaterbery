@@ -3,6 +3,8 @@
   background: var(--color-light);
   border-radius: var(--border-radius);
   position: relative;
+  position: relative;
+  z-index: 1;
 
   &__inner {
     display: flex;

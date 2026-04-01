@@ -6,7 +6,6 @@
   border-radius: var(--border-radius);
   box-sizing: border-box;
   position: relative;
-  z-index: 10;
 
   @include hd1440 {
     padding: 22px 24px;

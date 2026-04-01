@@ -8,6 +8,7 @@ export default function ButtonLink({to, children, className='', onClick, type, d
                 className={`button__link ${className}`}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={onClick}
                 {...rest}
             >
                 {children}
@@ -17,7 +18,7 @@ export default function ButtonLink({to, children, className='', onClick, type, d
 
     if (to) {
         return (
-            <Link to={to} className={`button__link ${className}`} {...rest}>
+            <Link to={to} className={`button__link ${className}`} onClick={onClick} {...rest}>
                 {children}
             </Link>
         );
