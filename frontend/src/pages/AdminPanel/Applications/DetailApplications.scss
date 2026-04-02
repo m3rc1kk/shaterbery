@@ -1,0 +1,152 @@
+.detail-applications {
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 0;
+  width: min(520px, calc(100vw - 32px));
+  max-height: min(90vh, calc(100vh - 32px));
+  background: var(--color-light);
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.28);
+  }
+
+  &__inner {
+    display: flex;
+    flex-direction: column;
+    row-gap: 16px;
+    max-height: inherit;
+    padding: 32px;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: 12px;
+    flex-shrink: 0;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  &__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    padding: 0;
+    opacity: 0.4;
+    cursor: pointer;
+
+    @include hover {
+      opacity: 1;
+    }
+  }
+
+  &__body {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    row-gap: 20px;
+  }
+
+  &__customer-title,
+  &__goods-title,
+  &__services-title {
+    margin: 0 0 10px;
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0.5;
+  }
+
+  &__customer-list,
+  &__goods-list,
+  &__services-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
+  }
+
+  &__customer-item,
+  &__goods-item,
+  &__services-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px 16px;
+  }
+
+  &__customer-label,
+  &__goods-label,
+  &__services-label {
+    opacity: 0.4;
+    font-weight: 500;
+  }
+
+  &__customer-value,
+  &__goods-value,
+  &__services-value {
+    font-weight: 500;
+    text-align: right;
+  }
+
+  &__input-select {
+    width: 100%;
+    max-width: 200px;
+    border: var(--border);
+    border-radius: var(--border-radius);
+    padding: 8px 12px;
+    outline: none;
+    background: var(--color-light);
+    font-weight: 500;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-shrink: 0;
+    padding-top: 16px;
+  }
+
+  &__price-wrapper {
+    display: flex;
+    flex-direction: column;
+    row-gap: 4px;
+  }
+
+  &__price-label {
+    opacity: 0.45;
+    font-weight: 500;
+  }
+
+  &__price {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  &__footer-buttons {
+    display: flex;
+    align-items: center;
+    column-gap: 8px;
+  }
+
+  &__footer-button {
+    opacity: .4;
+    cursor: pointer;
+
+    @include hover {
+      opacity: 1;
+    }
+  }
+}

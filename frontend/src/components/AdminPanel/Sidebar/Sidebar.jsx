@@ -5,13 +5,24 @@ import applicationIcon from '../../../assets/images/admin-panel/sidebar/applicat
 import applicationActiveIcon from '../../../assets/images/admin-panel/sidebar/application-active.svg'
 import logoutIcon from '../../../assets/images/admin-panel/sidebar/log-out.svg'
 import logoIcon from '../../../assets/images/Logo.svg'
-import closeButton from "../../../assets/images/header/x.svg";
+import closeButton from "../../../assets/images/admin-panel/sidebar/x.svg";
 import {useEffect, useRef, useState} from "react";
 import burgerMenu from "../../../assets/images/header/menu.svg";
 import {useLocation} from "react-router-dom";
+import Input from "../../Input/Input.jsx";
+import PhoneInput from "../../Input/PhoneInput.jsx";
+import TimeInput from "../../Input/TimeInput.jsx";
+import QuantityInput from "../../Input/QuantityInput.jsx";
+import YesNoToggle from "../../Input/YesNoToggle.jsx";
+import truckActiveIcon from "../../../assets/images/application/truck-active.svg";
+import truckIcon from "../../../assets/images/application/truck.svg";
+import boxActiveIcon from "../../../assets/images/application/box-active.svg";
+import boxIcon from "../../../assets/images/application/box.svg";
 
 export default function Sidebar() {
     const dialogRef = useRef(null);
+    const newApplicationDialogRef = useRef(null);
+    const newApplicationOpenTimeoutRef = useRef(null);
     const closeTimeoutRef = useRef(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
@@ -51,10 +62,37 @@ export default function Sidebar() {
         }
     };
 
+    const openNewApplicationDialog = () => {
+        if (newApplicationOpenTimeoutRef.current) {
+            clearTimeout(newApplicationOpenTimeoutRef.current);
+            newApplicationOpenTimeoutRef.current = null;
+        }
+        if (dialogRef.current?.open) {
+            closeMenu();
+            newApplicationOpenTimeoutRef.current = setTimeout(() => {
+                newApplicationDialogRef.current?.showModal();
+                newApplicationOpenTimeoutRef.current = null;
+            }, 230);
+            return;
+        }
+        newApplicationDialogRef.current?.showModal();
+    };
+
+    const closeNewApplicationDialog = () => {
+        newApplicationDialogRef.current?.close();
+    };
+
+    const handleNewApplicationSubmit = (event) => {
+        event.preventDefault();
+    };
+
     useEffect(() => {
         return () => {
             if (closeTimeoutRef.current) {
                 clearTimeout(closeTimeoutRef.current);
+            }
+            if (newApplicationOpenTimeoutRef.current) {
+                clearTimeout(newApplicationOpenTimeoutRef.current);
             }
         };
     }, []);
@@ -65,7 +103,12 @@ export default function Sidebar() {
                 <div className="sidebar__inner">
                     <header className="sidebar__header hidden-tablet">
                         <h2 className="sidebar__header-title">{pageTitle}</h2>
-                        <ButtonLink to={'/'} className="sidebar__header-button button__main">Новая заявка</ButtonLink>
+                        <ButtonLink
+                            className="sidebar__header-button button__main"
+                            onClick={openNewApplicationDialog}
+                        >
+                            Новая заявка
+                        </ButtonLink>
                     </header>
 
                     <ButtonLink
@@ -188,7 +231,10 @@ export default function Sidebar() {
                         </ul>
                     </nav>
 
-                    <ButtonLink to={'/'} className="button__main sidebar__mobile-create" onClick={closeMenu}>
+                    <ButtonLink
+                        className="button__main sidebar__mobile-create"
+                        onClick={openNewApplicationDialog}
+                    >
                         Новая заявка
                     </ButtonLink>
 
@@ -199,6 +245,130 @@ export default function Sidebar() {
                         </div>
                         <img src={logoutIcon} width={20} height={20} loading={'lazy'} alt="Выход из аккаунта" className="sidebar__logout"/>
                     </div>
+                </div>
+            </dialog>
+
+            <dialog
+                ref={newApplicationDialogRef}
+                className="new-applications"
+            >
+                <div className="new-applications__inner">
+                    <header className="new-applications__header">
+                        <h3 className="new-applications__title">Создать заявку</h3>
+                        <ButtonLink
+                            type="button"
+                            className="new-applications__close"
+                            onClick={closeNewApplicationDialog}
+                        >
+                            <img src={closeButton} width={24} height={24} loading='lazy' alt="Закрыть"/>
+                        </ButtonLink>
+                    </header>
+                    <form className="new-applications__form" onSubmit={handleNewApplicationSubmit} noValidate>
+                        <div className="new-applications__form-contact">
+                            <Input
+                                id="name"
+                                label="Как к вам обращаться"
+                                placeholder="Иван"
+                                className="field__input--half"
+                                required
+                            />
+
+                            <PhoneInput
+                                id="phone"
+                                name="phone"
+                                label="Телефон"
+                                className="field__input--half"
+                                required
+                            />
+                        </div>
+
+                        <div className="new-applications__form-date">
+                            <Input
+                                id="date"
+                                name="date"
+                                label="Дата"
+                                type="date"
+                                className="field__input--half"
+                                required
+                            />
+
+                            <TimeInput
+                                id="time"
+                                name="time"
+                                label="Время"
+                                className="field__input--half"
+                                required
+                            />
+                        </div>
+
+                        <Input
+                            id="place"
+                            label="Место проведения"
+                            placeholder="Адрес"
+                            required
+                        />
+
+                        <div className="new-applications__form-tent">
+                            <QuantityInput
+                                id="tent3x6"
+                                name="tent3x6"
+                                label="Шатёр 3×6м - 2.000 ₽/сут"
+                                className="field__input--half"
+                            />
+
+                            <QuantityInput
+                                id="tent3x3"
+                                name="tent3x3"
+                                label="Шатёр 3×3м - 1.500₽/сут"
+                                className="field__input--half"
+                            />
+                        </div>
+
+                        <div className="new-applications__form-furniture">
+                            <QuantityInput
+                                id="furniture"
+                                name="furniture"
+                                label="Комплект мебели - 500₽/сут"
+                                className="field__input--third"
+                            />
+
+                            <QuantityInput
+                                id="chairs"
+                                name="chairs"
+                                label="Стул раскладной - 200₽/шт"
+                                className="field__input--third"
+                            />
+
+                            <QuantityInput
+                                id="bulb"
+                                name="bulb"
+                                label="Лампочка - 100₽/шт"
+                                className="field__input--third"
+                            />
+                        </div>
+
+                        <div className="new-applications__form-services">
+                            <YesNoToggle
+                                label="Доставка"
+                                name="delivery"
+                                iconYes={truckActiveIcon}
+                                iconNo={truckIcon}
+                                defaultYes
+                                className="field__input--half"
+                            />
+                            <YesNoToggle
+                                label="Сборка"
+                                name="assembly"
+                                iconYes={boxActiveIcon}
+                                iconNo={boxIcon}
+                                className="field__input--half"
+                            />
+                        </div>
+
+                        <ButtonLink type="submit" className="button__main new-applications__form-button">
+                            Создать заявку
+                        </ButtonLink>
+                    </form>
                 </div>
             </dialog>
         </>

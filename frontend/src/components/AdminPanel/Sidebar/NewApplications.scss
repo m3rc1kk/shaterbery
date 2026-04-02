@@ -1,0 +1,89 @@
+.new-applications {
+  max-width: 992px;
+  width: 100%;
+  border: 0;
+  border-radius: var(--border-radius);
+
+  &__inner {
+    display: flex;
+    flex-direction: column;
+    row-gap: 16px;
+    padding: 16px;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__title {
+    font-weight: 600;
+  }
+
+  &__close {
+    opacity: .4;
+
+    @include hover {
+      opacity: 1;
+    }
+  }
+
+  &__form {
+    flex: 1 1 65%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    row-gap: 16px;
+
+    @include mobile {
+      row-gap: 16px;
+    }
+
+    @include desktop {
+      flex: 1 1 100%;
+    }
+
+    &-contact,
+    &-date,
+    &-tent,
+    &-furniture,
+    &-services {
+      display: flex;
+      align-items: center;
+      column-gap: 24px;
+      min-width: 0;
+      width: 100%;
+
+      > .field.field__input--half,
+      > .field.field__input--third {
+        flex: 1 1 0;
+        min-width: 0;
+        width: auto;
+        max-width: 100%;
+      }
+
+      @include mobile {
+        flex-direction: column;
+        align-items: stretch;
+        row-gap: 16px;
+        column-gap: 0;
+
+        > .field.field__input--half,
+        > .field.field__input--third {
+          flex: none;
+          width: 100%;
+          max-width: 100%;
+        }
+      }
+    }
+
+    &-button {
+      font-weight: 500;
+
+      @include mobile {
+        margin-top: 8px;
+      }
+    }
+  }
+}

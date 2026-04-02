@@ -132,20 +132,36 @@
     padding-left: 24px;
   }
 
-  &__td {
-    vertical-align: top;
+  &__tr--data {
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    outline: none;
+    transition: background-color var(--transition-duration) ease, box-shadow var(--transition-duration) ease;
+
+    @include hover {
+      background-color: rgba(51, 146, 255, 0.06);
+      box-shadow: inset 0 0 0 1px rgba(51, 146, 255, 0.12);
+    }
   }
 
-  &__tbody td:last-child {
-    vertical-align: top;
+  &__td--status {
+    cursor: default;
   }
 
   &__client {
     &-title {
       font-weight: 600;
+
+      @include mobile {
+        font-size: 14px;
+      }
     }
     &-phone {
       opacity: .4;
+
+      @include mobile {
+        display: none;
+      }
     }
   }
 
