@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import mailIcon from '../../assets/images/application/mail.svg'
 import compassIcon from '../../assets/images/application/compass.svg'
 import timeIcon from '../../assets/images/application/clock.svg'
@@ -12,10 +13,35 @@ import QuantityInput from "../Input/QuantityInput.jsx";
 import PhoneInput from "../Input/PhoneInput.jsx";
 import TimeInput from "../Input/TimeInput.jsx";
 import YesNoToggle from "../Input/YesNoToggle.jsx";
+import { publicSubmitPayloadFromForm } from '../../api/applicationForm.js';
+import { submitPublicApplication } from '../../api/applications.js';
+import { ApiError } from '../../api/http.js';
 
 export default function Application() {
-    function handleSubmit(e) {
-        e.preventDefault()
+    const [message, setMessage] = useState('');
+    const [error, setError] = useState('');
+    const [pending, setPending] = useState(false);
+    const [fieldsKey, setFieldsKey] = useState(0);
+
+    async function handleSubmit(e) {
+        e.preventDefault();
+        setMessage('');
+        setError('');
+        const form = e.currentTarget;
+        if (!(form instanceof HTMLFormElement)) return;
+        setPending(true);
+        try {
+            const payload = publicSubmitPayloadFromForm(form);
+            await submitPublicApplication(payload);
+            setMessage('Заявка отправлена. Мы свяжемся с вами в ближайшее время.');
+            form.reset();
+            setFieldsKey((k) => k + 1);
+        } catch (err) {
+            const text = err instanceof ApiError ? err.message : 'Не удалось отправить заявку';
+            setError(text);
+        } finally {
+            setPending(false);
+        }
     }
 
     return (
@@ -65,13 +91,16 @@ export default function Application() {
                     </div>
 
                     <form className="application__form" onSubmit={handleSubmit} noValidate>
+                        <div key={fieldsKey} className="application__form-fields">
                         <div className="application__form-contact">
                             <Input
                                 id="name"
+                                name="name"
                                 label="Как к вам обращаться"
                                 placeholder="Иван"
                                 className="field__input--half"
                                 required
+                                disabled={pending}
                             />
 
                             <PhoneInput
@@ -80,6 +109,7 @@ export default function Application() {
                                 label="Телефон"
                                 className="field__input--half"
                                 required
+                                disabled={pending}
                             />
                         </div>
 
@@ -91,6 +121,7 @@ export default function Application() {
                                 type="date"
                                 className="field__input--half"
                                 required
+                                disabled={pending}
                             />
 
                             <TimeInput
@@ -99,14 +130,17 @@ export default function Application() {
                                 label="Время"
                                 className="field__input--half"
                                 required
+                                disabled={pending}
                             />
                         </div>
 
                         <Input
                             id="place"
+                            name="place"
                             label="Место проведения"
                             placeholder="Адрес"
                             required
+                            disabled={pending}
                         />
 
                         <div className="application__form-tent">
@@ -115,6 +149,7 @@ export default function Application() {
                                 name="tent3x6"
                                 label="Шатёр 3×6м - 2.000 ₽/сут"
                                 className="field__input--half"
+                                disabled={pending}
                             />
 
                             <QuantityInput
@@ -122,6 +157,7 @@ export default function Application() {
                                 name="tent3x3"
                                 label="Шатёр 3×3м - 1.500₽/сут"
                                 className="field__input--half"
+                                disabled={pending}
                             />
                         </div>
 
@@ -131,6 +167,7 @@ export default function Application() {
                                 name="furniture"
                                 label="Комплект мебели - 500₽/сут"
                                 className="field__input--third"
+                                disabled={pending}
                             />
 
                             <QuantityInput
@@ -138,6 +175,7 @@ export default function Application() {
                                 name="chairs"
                                 label="Стул раскладной - 200₽/шт"
                                 className="field__input--third"
+                                disabled={pending}
                             />
 
                             <QuantityInput
@@ -145,6 +183,7 @@ export default function Application() {
                                 name="bulb"
                                 label="Лампочка - 100₽/шт"
                                 className="field__input--third"
+                                disabled={pending}
                             />
                         </div>
 
@@ -156,6 +195,7 @@ export default function Application() {
                                 iconNo={truckIcon}
                                 defaultYes
                                 className="field__input--half"
+                                disabled={pending}
                             />
                             <YesNoToggle
                                 label="Сборка"
@@ -163,10 +203,27 @@ export default function Application() {
                                 iconYes={boxActiveIcon}
                                 iconNo={boxIcon}
                                 className="field__input--half"
+                                disabled={pending}
                             />
                         </div>
+                        </div>
 
-                        <ButtonLink type="submit" className={'button__main application__form-button'}>
+                        {message ? (
+                            <p className="application__form-message application__form-message--ok" role="status">
+                                {message}
+                            </p>
+                        ) : null}
+                        {error ? (
+                            <p className="application__form-message application__form-message--err" role="alert">
+                                {error}
+                            </p>
+                        ) : null}
+
+                        <ButtonLink
+                            type="submit"
+                            className={'button__main application__form-button'}
+                            disabled={pending}
+                        >
                             Отправить заявку
                         </ButtonLink>
                     </form>

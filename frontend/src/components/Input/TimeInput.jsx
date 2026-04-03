@@ -42,8 +42,10 @@ export default function TimeInput({
     name,
     className = '',
     required,
+    disabled = false,
+    initialTime = '',
 }) {
-    const [value, setValue] = useState('');
+    const [value, setValue] = useState(() => (initialTime ?? '').toString().trim());
 
     return (
         <div className={`field ${className}`.trim()}>
@@ -64,6 +66,7 @@ export default function TimeInput({
                 pattern="^([01][0-9]|2[0-3]):[0-5][0-9]$"
                 title="24 часа, формат ЧЧ:ММ"
                 required={required}
+                disabled={disabled}
             />
         </div>
     );

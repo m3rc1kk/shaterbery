@@ -1,11 +1,17 @@
 from rest_framework import permissions, status, viewsets
+from rest_framework.pagination import CursorPagination
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import SearchFilter
 
 from .models import Application
 from .serializers import ApplicationSerializer, ApplicationSubmitSerializer
+
+
+class ApplicationCursorPagination(CursorPagination):
+    page_size = 20
+    ordering = ('-created_at', '-id')
 
 
 class ApplicationSubmitThrottle(AnonRateThrottle):
@@ -30,10 +36,9 @@ class ApplicationViewSet(viewsets.ModelViewSet):
     queryset = Application.objects.all()
     serializer_class = ApplicationSerializer
     permission_classes = [permissions.IsAdminUser]
-    filter_backends = [SearchFilter, OrderingFilter]
+    pagination_class = ApplicationCursorPagination
+    filter_backends = [SearchFilter]
     search_fields = ['full_name', 'phone', 'location']
-    ordering_fields = ['created_at', 'event_date', 'event_time', 'total_price', 'status', 'source']
-    ordering = ['-created_at', '-id']
 
     def get_queryset(self):
         qs = super().get_queryset()

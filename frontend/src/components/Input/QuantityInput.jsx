@@ -8,6 +8,7 @@ export default function QuantityInput({
     min = 0,
     max,
     defaultValue = 0,
+    disabled = false,
 }) {
     const [value, setValue] = useState(() =>
         Math.max(min, Number(defaultValue) || 0),
@@ -47,6 +48,7 @@ export default function QuantityInput({
                     className="quantity-field__btn quantity-field__btn--minus"
                     onClick={dec}
                     aria-label="Уменьшить количество"
+                    disabled={disabled}
                 >
                     −
                 </button>
@@ -61,12 +63,14 @@ export default function QuantityInput({
                     max={max}
                     inputMode="numeric"
                     autoComplete="off"
+                    disabled={disabled}
                 />
                 <button
                     type="button"
                     className="quantity-field__btn quantity-field__btn--plus"
                     onClick={inc}
                     aria-label="Увеличить количество"
+                    disabled={disabled}
                 >
                     +
                 </button>

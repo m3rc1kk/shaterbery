@@ -27,16 +27,16 @@ class UserLoginSerializer(serializers.Serializer):
 
             if not user:
                 raise serializers.ValidationError(
-                    'Invalid username or password'
+                    'Неверный логин или пароль'
                 )
             if not user.is_active:
                 raise serializers.ValidationError(
-                    'Your account is disabled'
+                    'Учётная запись отключена'
                 )
 
             attrs['user'] = user
             return attrs
         else:
             raise serializers.ValidationError(
-                'Username and password are required.'
+                'Укажите логин и пароль'
             )

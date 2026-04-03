@@ -29,6 +29,19 @@
     }
   }
 
+  &__error {
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: var(--border-radius);
+    background: color-mix(in srgb, var(--color-error, #c62828) 10%, transparent);
+    color: var(--color-error, #c62828);
+    font-size: 14px;
+  }
+
+  &__fields {
+    display: contents;
+  }
+
   &__form {
     flex: 1 1 65%;
     min-width: 0;
@@ -48,6 +61,32 @@
     &-date,
     &-tent,
     &-furniture,
+    &-admin-meta {
+      display: flex;
+      align-items: flex-end;
+      column-gap: 24px;
+      width: 100%;
+
+      > .field.field__input--half {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+
+      @include mobile {
+        flex-direction: column;
+        align-items: stretch;
+        row-gap: 16px;
+      }
+    }
+
+    &-admin-meta {
+      .new-applications__source-select {
+        background-color: var(--color-light);
+        color: inherit;
+        cursor: pointer;
+      }
+    }
+
     &-services {
       display: flex;
       align-items: center;
@@ -84,6 +123,23 @@
       @include mobile {
         margin-top: 8px;
       }
+    }
+  }
+
+  &__status-tone {
+    cursor: pointer;
+    font-weight: 500;
+
+    &--inwork {
+      background-color: color-mix(in srgb, var(--color-accent) 12%, transparent);
+      color: var(--color-accent);
+      border: 1px solid color-mix(in srgb, var(--color-accent) 28%, rgba(5, 9, 37, 0.08));
+    }
+
+    &--closed {
+      background-color: color-mix(in srgb, var(--color-green) 12%, transparent);
+      color: var(--color-green);
+      border: 1px solid color-mix(in srgb, var(--color-green) 28%, rgba(5, 9, 37, 0.08));
     }
   }
 }

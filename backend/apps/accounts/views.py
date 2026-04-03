@@ -19,7 +19,7 @@ class UserLoginView(generics.GenericAPIView):
             'user': UserSerializer(user, context=self.get_serializer_context()).data,
             'refresh': str(refresh),
             'access': str(refresh.access_token),
-            'message': 'User Logged In!'
+            'message': 'Вход выполнен'
         }, status=status.HTTP_200_OK)
 
 
@@ -33,14 +33,14 @@ class UserLogoutView(generics.GenericAPIView):
                 token = RefreshToken(refresh_token)
                 token.blacklist()
                 return Response({
-                    'message': 'User Logged Out!'
+                    'message': 'Выход выполнен'
                 }, status=status.HTTP_205_RESET_CONTENT)
             else:
                 return Response({
-                    'message': 'Refresh token is required'
+                    'message': 'Требуется refresh-токен'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             return Response({
-                'message': 'Invalid Token'
+                'message': 'Недействительный токен'
             }, status=status.HTTP_400_BAD_REQUEST)

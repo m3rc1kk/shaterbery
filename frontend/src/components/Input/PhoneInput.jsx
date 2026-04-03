@@ -27,8 +27,10 @@ export default function PhoneInput({
     name,
     className = '',
     required,
+    disabled = false,
+    initialPhone = '',
 }) {
-    const [value, setValue] = useState('');
+    const [value, setValue] = useState(() => formatRuPhone(initialPhone ?? ''));
 
     return (
         <div className={`field ${className}`.trim()}>
@@ -48,6 +50,7 @@ export default function PhoneInput({
                 pattern="\\+7 \\(\\d{3}\\) \\d{3} \\d{2} \\d{2}"
                 title="+7 (XXX) XXX XX XX"
                 required={required}
+                disabled={disabled}
             />
         </div>
     );

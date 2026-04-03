@@ -8,16 +8,19 @@ import logoIcon from '../../../assets/images/Logo.svg'
 import closeButton from "../../../assets/images/admin-panel/sidebar/x.svg";
 import {useEffect, useRef, useState} from "react";
 import burgerMenu from "../../../assets/images/header/menu.svg";
-import {useLocation} from "react-router-dom";
-import Input from "../../Input/Input.jsx";
-import PhoneInput from "../../Input/PhoneInput.jsx";
-import TimeInput from "../../Input/TimeInput.jsx";
-import QuantityInput from "../../Input/QuantityInput.jsx";
-import YesNoToggle from "../../Input/YesNoToggle.jsx";
-import truckActiveIcon from "../../../assets/images/application/truck-active.svg";
-import truckIcon from "../../../assets/images/application/truck.svg";
-import boxActiveIcon from "../../../assets/images/application/box-active.svg";
-import boxIcon from "../../../assets/images/application/box.svg";
+import {useLocation, useNavigate} from "react-router-dom";
+import { useAuth } from "../../../auth/useAuth.js";
+import { adminCreatePayloadFromForm } from "../../../api/applicationForm.js";
+import { createApplicationAdmin } from "../../../api/applications.js";
+import { ApiError } from "../../../api/http.js";
+import AdminApplicationFormBody from "../AdminApplicationFormBody.jsx";
+
+function adminShortName(user) {
+    if (!user) return 'Админ';
+    const full = [user.first_name, user.last_name].filter(Boolean).join(' ').trim();
+    if (full) return full;
+    return user.username || 'Админ';
+}
 
 export default function Sidebar() {
     const dialogRef = useRef(null);
@@ -26,7 +29,13 @@ export default function Sidebar() {
     const closeTimeoutRef = useRef(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
+    const [newAppFieldsKey, setNewAppFieldsKey] = useState(0);
+    const [createError, setCreateError] = useState('');
+    const [createPending, setCreatePending] = useState(false);
     const { pathname } = useLocation();
+    const navigate = useNavigate();
+    const { user, logout } = useAuth();
+    const profileName = adminShortName(user);
     const isApplicationsPage = pathname.startsWith('/admin/applications');
     const isDashboardPage = pathname.startsWith('/admin/dashboard');
     const pageTitle = isApplicationsPage ? 'Заявки' : 'Дашборд';
@@ -82,8 +91,28 @@ export default function Sidebar() {
         newApplicationDialogRef.current?.close();
     };
 
-    const handleNewApplicationSubmit = (event) => {
+    const handleLogout = async () => {
+        await logout();
+        navigate('/admin/sign-in', { replace: true });
+    };
+
+    const handleNewApplicationSubmit = async (event) => {
         event.preventDefault();
+        const form = event.currentTarget;
+        if (!(form instanceof HTMLFormElement)) return;
+        setCreateError('');
+        setCreatePending(true);
+        try {
+            await createApplicationAdmin(adminCreatePayloadFromForm(form));
+            form.reset();
+            setNewAppFieldsKey((k) => k + 1);
+            closeNewApplicationDialog();
+            window.dispatchEvent(new CustomEvent('shaterbery:applications-changed'));
+        } catch (err) {
+            setCreateError(err instanceof ApiError ? err.message : 'Не удалось создать заявку');
+        } finally {
+            setCreatePending(false);
+        }
     };
 
     useEffect(() => {
@@ -164,10 +193,17 @@ export default function Sidebar() {
 
                         <div className="sidebar__profile">
                             <div className="sidebar__profile-info">
-                                <h3 className="sidebar__username">Максим М.</h3>
+                                <h3 className="sidebar__username">{profileName}</h3>
                                 <span className="sidebar__role">Администратор</span>
                             </div>
-                            <img src={logoutIcon} width={20} height={20} loading={'lazy'} alt="Выход из аккаунта" className="sidebar__logout"/>
+                            <button
+                                type="button"
+                                className="sidebar__logout-btn"
+                                onClick={handleLogout}
+                                aria-label="Выход из аккаунта"
+                            >
+                                <img src={logoutIcon} width={20} height={20} loading={'lazy'} alt="" className="sidebar__logout"/>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -240,10 +276,17 @@ export default function Sidebar() {
 
                     <div className="sidebar__mobile-profile">
                         <div className="sidebar__profile-info">
-                            <h3 className="sidebar__username">Максим М.</h3>
+                            <h3 className="sidebar__username">{profileName}</h3>
                             <span className="sidebar__role">Администратор</span>
                         </div>
-                        <img src={logoutIcon} width={20} height={20} loading={'lazy'} alt="Выход из аккаунта" className="sidebar__logout"/>
+                        <button
+                            type="button"
+                            className="sidebar__logout-btn"
+                            onClick={() => { closeMenu(); handleLogout(); }}
+                            aria-label="Выход из аккаунта"
+                        >
+                            <img src={logoutIcon} width={20} height={20} loading={'lazy'} alt="" className="sidebar__logout"/>
+                        </button>
                     </div>
                 </div>
             </dialog>
@@ -264,108 +307,18 @@ export default function Sidebar() {
                         </ButtonLink>
                     </header>
                     <form className="new-applications__form" onSubmit={handleNewApplicationSubmit} noValidate>
-                        <div className="new-applications__form-contact">
-                            <Input
-                                id="name"
-                                label="Как к вам обращаться"
-                                placeholder="Иван"
-                                className="field__input--half"
-                                required
-                            />
-
-                            <PhoneInput
-                                id="phone"
-                                name="phone"
-                                label="Телефон"
-                                className="field__input--half"
-                                required
+                        <div key={newAppFieldsKey} className="new-applications__fields">
+                            <AdminApplicationFormBody
+                                idPrefix="new-app"
+                                disabled={createPending}
                             />
                         </div>
 
-                        <div className="new-applications__form-date">
-                            <Input
-                                id="date"
-                                name="date"
-                                label="Дата"
-                                type="date"
-                                className="field__input--half"
-                                required
-                            />
+                        {createError ? (
+                            <p className="new-applications__error" role="alert">{createError}</p>
+                        ) : null}
 
-                            <TimeInput
-                                id="time"
-                                name="time"
-                                label="Время"
-                                className="field__input--half"
-                                required
-                            />
-                        </div>
-
-                        <Input
-                            id="place"
-                            label="Место проведения"
-                            placeholder="Адрес"
-                            required
-                        />
-
-                        <div className="new-applications__form-tent">
-                            <QuantityInput
-                                id="tent3x6"
-                                name="tent3x6"
-                                label="Шатёр 3×6м - 2.000 ₽/сут"
-                                className="field__input--half"
-                            />
-
-                            <QuantityInput
-                                id="tent3x3"
-                                name="tent3x3"
-                                label="Шатёр 3×3м - 1.500₽/сут"
-                                className="field__input--half"
-                            />
-                        </div>
-
-                        <div className="new-applications__form-furniture">
-                            <QuantityInput
-                                id="furniture"
-                                name="furniture"
-                                label="Комплект мебели - 500₽/сут"
-                                className="field__input--third"
-                            />
-
-                            <QuantityInput
-                                id="chairs"
-                                name="chairs"
-                                label="Стул раскладной - 200₽/шт"
-                                className="field__input--third"
-                            />
-
-                            <QuantityInput
-                                id="bulb"
-                                name="bulb"
-                                label="Лампочка - 100₽/шт"
-                                className="field__input--third"
-                            />
-                        </div>
-
-                        <div className="new-applications__form-services">
-                            <YesNoToggle
-                                label="Доставка"
-                                name="delivery"
-                                iconYes={truckActiveIcon}
-                                iconNo={truckIcon}
-                                defaultYes
-                                className="field__input--half"
-                            />
-                            <YesNoToggle
-                                label="Сборка"
-                                name="assembly"
-                                iconYes={boxActiveIcon}
-                                iconNo={boxIcon}
-                                className="field__input--half"
-                            />
-                        </div>
-
-                        <ButtonLink type="submit" className="button__main new-applications__form-button">
+                        <ButtonLink type="submit" className="button__main new-applications__form-button" disabled={createPending}>
                             Создать заявку
                         </ButtonLink>
                     </form>

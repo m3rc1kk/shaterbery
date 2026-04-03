@@ -1,89 +1,256 @@
-import { useRef, useState } from "react";
-import Sidebar from "../../../components/AdminPanel/Sidebar/Sidebar.jsx";
-import closeButton from "../../../assets/images/admin-panel/sidebar/x.svg";
-import ButtonLink from "../../../components/Button/ButtonLink.jsx";
-import editIcon from "../../../assets/images/admin-panel/applications/edit.svg";
-import deleteIcon from "../../../assets/images/admin-panel/applications/delete.svg";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Sidebar from '../../../components/AdminPanel/Sidebar/Sidebar.jsx';
+import closeButton from '../../../assets/images/admin-panel/sidebar/x.svg';
+import ButtonLink from '../../../components/Button/ButtonLink.jsx';
+import editIcon from '../../../assets/images/admin-panel/applications/edit.svg';
+import deleteIcon from '../../../assets/images/admin-panel/applications/delete.svg';
+import AdminApplicationFormBody from '../../../components/AdminPanel/AdminApplicationFormBody.jsx';
+import {
+    buildApplicationsListPath,
+    deleteApplication,
+    fetchApplicationsList,
+    pathFromNextUrl,
+    patchApplication,
+} from '../../../api/applications.js';
+import { adminPatchPayloadFromForm } from '../../../api/applicationForm.js';
+import { ApiError } from '../../../api/http.js';
+import {
+    formatDateTimeRu,
+    formatGoodsLineCaption,
+    formatMoneyRub,
+    shortClientName,
+    truncate,
+} from '../../../utils/format.js';
 
-const APPLICATION_DETAIL_GOODS = [
-    { label: "Шатёр 3×6 м", value: "1 шт × 2 000 ₽ = 2.000 ₽" },
-    { label: "Шатёр 3×3 м", value: "0 шт × 1.500 ₽ = 0 ₽" },
-    { label: "Мебель", value: "1 компл. × 500 ₽ = 500 ₽" },
-    { label: "Стулья", value: "6 шт × 200 ₽ = 1.200 ₽" },
-    { label: "Лампочки", value: "4 шт × 100 ₽ = 400 ₽" },
-];
-
-const DEFAULT_APPLICATION = {
-    clientPhone: "+7 (953) 436 32 54",
-    date: "12 июл 2026, 15:00",
-    locationShort: "Парк Горького, луж...",
-    locationFull: "Парк Горького, лужайка у пруда",
-    cost: "4100₽",
-    resource: "Вручную",
-    composition: "1 - 3х6, 3 - 3x3, 1 -",
-    status: "new",
-    fullName: "Мария Сергеевна",
-    phoneDetail: "+7 (953)-542-24 43",
-    dateDetail: "12 июл 2026, 15:00",
-    goods: APPLICATION_DETAIL_GOODS,
-    delivery: "Да",
-    assembly: "Да",
-    source: "Авито",
-    totalPrice: "4100₽",
+const SOURCE_LABELS = {
+    site: 'Сайт',
+    manual: 'Вручную',
 };
 
-const ROW_PRESETS = [
-    { clientName: "Мария С." },
-    {
-        clientName: "Алексей П.",
-        fullName: "Алексей Петрович",
-        clientPhone: "+7 (916) 112 44 09",
-        phoneDetail: "+7 (916) 112-44-09",
-        status: "inwork",
-        source: "Сайт",
-    },
-    {
-        clientName: "Елена К.",
-        fullName: "Елена Константиновна",
-        clientPhone: "+7 (903) 221 88 11",
-        phoneDetail: "+7 (903) 221-88-11",
-        status: "closed",
-        source: "Телеграм",
-    },
-    { clientName: "Иван Д." },
-    { clientName: "Ольга М." },
-    { clientName: "Сергей В." },
-    { clientName: "Анна Л." },
-    { clientName: "Пётр Н." },
-    { clientName: "Татьяна Р." },
-    { clientName: "Мария С." },
-];
+function statusStClass(value) {
+    return ['new', 'inwork', 'closed'].includes(value) ? value : 'new';
+}
 
-const APPLICATIONS_DATA = ROW_PRESETS.map((preset, i) => ({
-    id: String(i + 1),
-    ...DEFAULT_APPLICATION,
-    ...preset,
-}));
+function statusToneModifier(status, blockPrefix) {
+    const v = statusStClass(status);
+    if (v === 'new') return '';
+    return ` ${blockPrefix}--st-${v}`;
+}
+
+function ynLabel(v) {
+    return v ? 'Да' : 'Нет';
+}
+
+function detailGoodsFromApi(app) {
+    const lines = app.goods_lines ?? [];
+    return lines.map((line) => ({
+        label: line.label,
+        value: formatGoodsLineCaption(line),
+    }));
+}
+
+function mergeUpdated(list, id, updated) {
+    return list.map((row) => (row.id === id ? { ...row, ...updated } : row));
+}
 
 export default function Applications() {
+    const navigate = useNavigate();
     const detailDialogRef = useRef(null);
-    const [selectedApplication, setSelectedApplication] = useState(null);
+    const editDialogRef = useRef(null);
+    const tableWrapRef = useRef(null);
+    const sentinelRef = useRef(null);
+    const nextPathRef = useRef(null);
+    const loadingMoreRef = useRef(false);
+
+    const [list, setList] = useState([]);
+    const [selected, setSelected] = useState(null);
+    const [editApp, setEditApp] = useState(null);
+    const [editFormKey, setEditFormKey] = useState(0);
+    const [editError, setEditError] = useState('');
+    const [editSaving, setEditSaving] = useState(false);
+
+    const [searchInput, setSearchInput] = useState('');
+    const [search, setSearch] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [loadingInitial, setLoadingInitial] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [listError, setListError] = useState('');
+    const [actionError, setActionError] = useState('');
+    const [saving, setSaving] = useState(false);
+
+    useEffect(() => {
+        const t = setTimeout(() => setSearch(searchInput), 350);
+        return () => clearTimeout(t);
+    }, [searchInput]);
+
+    const loadFirstPage = useCallback(async () => {
+        setListError('');
+        setLoadingInitial(true);
+        nextPathRef.current = null;
+        loadingMoreRef.current = false;
+        try {
+            const path = buildApplicationsListPath({ search, status: statusFilter });
+            const data = await fetchApplicationsList(path);
+            setList(data.results ?? []);
+            nextPathRef.current = pathFromNextUrl(data.next);
+        } catch (err) {
+            if (err instanceof ApiError && err.status === 401) {
+                navigate('/admin/sign-in', { replace: true, state: { from: '/admin/applications' } });
+                return;
+            }
+            setListError(
+                err instanceof ApiError ? err.message : 'Не удалось загрузить заявки',
+            );
+            setList([]);
+        } finally {
+            setLoadingInitial(false);
+        }
+    }, [search, statusFilter, navigate]);
+
+    useEffect(() => {
+        loadFirstPage();
+    }, [loadFirstPage]);
+
+    const loadMore = useCallback(async () => {
+        const path = nextPathRef.current;
+        if (!path || loadingMoreRef.current || loadingInitial) return;
+        loadingMoreRef.current = true;
+        setLoadingMore(true);
+        try {
+            const data = await fetchApplicationsList(path);
+            setList((prev) => [...prev, ...(data.results ?? [])]);
+            nextPathRef.current = pathFromNextUrl(data.next);
+        } catch (err) {
+            if (err instanceof ApiError && err.status === 401) {
+                navigate('/admin/sign-in', { replace: true, state: { from: '/admin/applications' } });
+                return;
+            }
+            setListError(err instanceof ApiError ? err.message : 'Не удалось догрузить заявки');
+        } finally {
+            loadingMoreRef.current = false;
+            setLoadingMore(false);
+        }
+    }, [loadingInitial, navigate]);
+
+    useEffect(() => {
+        const onRefresh = () => {
+            loadFirstPage();
+        };
+        window.addEventListener('shaterbery:applications-changed', onRefresh);
+        return () => window.removeEventListener('shaterbery:applications-changed', onRefresh);
+    }, [loadFirstPage]);
+
+    useEffect(() => {
+        const root = tableWrapRef.current;
+        const target = sentinelRef.current;
+        if (!root || !target) return;
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (
+                    entries[0].isIntersecting &&
+                    nextPathRef.current &&
+                    !loadingMoreRef.current &&
+                    !loadingInitial
+                ) {
+                    loadMore();
+                }
+            },
+            { root, rootMargin: '120px', threshold: 0 },
+        );
+        observer.observe(target);
+        return () => observer.disconnect();
+    }, [loadMore, loadingInitial, list.length, search, statusFilter]);
 
     const openDetailDialog = (app) => {
-        setSelectedApplication(app);
-        setTimeout(() => {
-            detailDialogRef.current?.showModal();
-        }, 0);
+        setActionError('');
+        setSelected(app);
+        setTimeout(() => detailDialogRef.current?.showModal(), 0);
     };
 
     const closeDetailDialog = () => {
         detailDialogRef.current?.close();
-        setSelectedApplication(null);
+        setSelected(null);
+        setActionError('');
+    };
+
+    const closeEditDialog = () => {
+        editDialogRef.current?.close();
+        setEditApp(null);
+        setEditError('');
+    };
+
+    const startEdit = () => {
+        if (!selected) return;
+        setEditApp(selected);
+        setEditFormKey((k) => k + 1);
+        setEditError('');
+        detailDialogRef.current?.close();
+        setSelected(null);
+        setTimeout(() => editDialogRef.current?.showModal(), 0);
     };
 
     const stopRowClick = (event) => {
         event.stopPropagation();
     };
+
+    async function handleEditSubmit(e) {
+        e.preventDefault();
+        if (!editApp) return;
+        const form = e.currentTarget;
+        if (!(form instanceof HTMLFormElement)) return;
+        setEditSaving(true);
+        setEditError('');
+        try {
+            const payload = adminPatchPayloadFromForm(form);
+            const updated = await patchApplication(editApp.id, payload);
+            setList((prev) => mergeUpdated(prev, editApp.id, updated));
+            closeEditDialog();
+            window.dispatchEvent(new CustomEvent('shaterbery:applications-changed'));
+        } catch (err) {
+            setEditError(err instanceof ApiError ? err.message : 'Не удалось сохранить изменения');
+        } finally {
+            setEditSaving(false);
+        }
+    }
+
+    const onStatusChange = async (id, status) => {
+        setActionError('');
+        try {
+            const updated = await patchApplication(id, { status });
+            setList((prev) => mergeUpdated(prev, id, updated));
+            setSelected((s) => (s && s.id === id ? { ...s, ...updated } : s));
+        } catch (err) {
+            setActionError(
+                err instanceof ApiError ? err.message : 'Не удалось обновить статус',
+            );
+        }
+    };
+
+    const onDelete = async () => {
+        if (!selected) return;
+        if (
+            !window.confirm(
+                `Удалить заявку №${selected.id}? Действие необратимо.`,
+            )
+        ) {
+            return;
+        }
+        setSaving(true);
+        setActionError('');
+        try {
+            await deleteApplication(selected.id);
+            setList((prev) => prev.filter((r) => r.id !== selected.id));
+            closeDetailDialog();
+            window.dispatchEvent(new CustomEvent('shaterbery:applications-changed'));
+        } catch (err) {
+            setActionError(err instanceof ApiError ? err.message : 'Не удалось удалить заявку');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const goodsForDetail = selected ? detailGoodsFromApi(selected) : [];
 
     return (
         <>
@@ -93,18 +260,31 @@ export default function Applications() {
                     <header className="applications__header">
                         <input
                             type="text"
-                            placeholder="Поиск..."
+                            placeholder="Поиск…"
                             className="applications__input-search"
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                            autoComplete="off"
                         />
-                        <select className="applications__input-select">
+                        <select
+                            className="applications__input-select"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                        >
                             <option value="all">Все статусы</option>
                             <option value="new">Новый</option>
                             <option value="inwork">В работе</option>
                             <option value="closed">Закрыт</option>
                         </select>
                     </header>
+                    {listError ? (
+                        <p className="applications__list-error" role="alert">
+                            {listError}
+                        </p>
+                    ) : null}
 
                     <div
+                        ref={tableWrapRef}
                         className="applications__table-wrap"
                         role="region"
                         aria-label="Таблица заявок, при узком экране прокрутка по горизонтали"
@@ -123,26 +303,52 @@ export default function Applications() {
                             </thead>
 
                             <tbody className="applications__tbody">
-                                {APPLICATIONS_DATA.map((app) => (
+                                {loadingInitial && list.length === 0 ? (
+                                    <tr className="applications__tr applications__tr--data">
+                                        <td className="applications__td" colSpan={7}>
+                                            Загрузка…
+                                        </td>
+                                    </tr>
+                                ) : null}
+                                {!loadingInitial && list.length === 0 ? (
+                                    <tr className="applications__tr applications__tr--data">
+                                        <td className="applications__td" colSpan={7}>
+                                            Заявок нет
+                                        </td>
+                                    </tr>
+                                ) : null}
+                                {list.map((app) => (
                                     <tr
                                         key={app.id}
                                         className="applications__tr applications__tr--data"
                                         onClick={() => openDetailDialog(app)}
                                     >
                                         <td className="applications__td applications__client">
-                                            <h3 className="applications__client-title">{app.clientName}</h3>
-                                            <span className="applications__client-phone">{app.clientPhone}</span>
+                                            <h3 className="applications__client-title">
+                                                {shortClientName(app.full_name)}
+                                            </h3>
+                                            <span className="applications__client-phone">{app.phone}</span>
                                         </td>
 
-                                        <td className="applications__td applications__date">{app.date}</td>
+                                        <td className="applications__td applications__date">
+                                            {formatDateTimeRu(app.event_date, app.event_time)}
+                                        </td>
 
-                                        <td className="applications__td applications__location">{app.locationShort}</td>
+                                        <td className="applications__td applications__location">
+                                            {truncate(app.location, 26)}
+                                        </td>
 
-                                        <td className="applications__td applications__cost">{app.cost}</td>
+                                        <td className="applications__td applications__cost">
+                                            {formatMoneyRub(app.total_price)}
+                                        </td>
 
-                                        <td className="applications__td applications__resource">{app.resource}</td>
+                                        <td className="applications__td applications__resource">
+                                            {SOURCE_LABELS[app.source] ?? app.source}
+                                        </td>
 
-                                        <td className="applications__td applications__composition">{app.composition}</td>
+                                        <td className="applications__td applications__composition">
+                                            {app.composition_summary ?? '—'}
+                                        </td>
 
                                         <td
                                             className="applications__td applications__td--status"
@@ -150,11 +356,14 @@ export default function Applications() {
                                             onMouseDown={stopRowClick}
                                         >
                                             <select
-                                                className="applications__input-select applications__input-select--table"
-                                                defaultValue={app.status}
+                                                className={`applications__input-select applications__input-select--table${statusToneModifier(app.status, 'applications__input-select')}`}
+                                                value={app.status}
                                                 onClick={stopRowClick}
                                                 onMouseDown={stopRowClick}
-                                                aria-label={`Статус заявки ${app.clientName}`}
+                                                onChange={(e) =>
+                                                    onStatusChange(app.id, e.target.value)
+                                                }
+                                                aria-label={`Статус заявки ${app.full_name}`}
                                             >
                                                 <option value="new">Новый</option>
                                                 <option value="inwork">В работе</option>
@@ -163,31 +372,48 @@ export default function Applications() {
                                         </td>
                                     </tr>
                                 ))}
+                                {loadingMore ? (
+                                    <tr className="applications__tr applications__tr--data">
+                                        <td className="applications__td applications__td--loading-more" colSpan={7}>
+                                            Загрузка ещё…
+                                        </td>
+                                    </tr>
+                                ) : null}
+                                <tr className="applications__tr applications__sentinel-row" aria-hidden="true">
+                                    <td ref={sentinelRef} className="applications__sentinel" colSpan={7} />
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <dialog
-                ref={detailDialogRef}
-                className="detail-applications"
-            >
-                {selectedApplication && (
+            <dialog ref={detailDialogRef} className="detail-applications">
+                {selected && (
                     <div className="detail-applications__inner">
                         <header className="detail-applications__header">
-                            <h3 className="detail-applications__title">
-                                Заявка №{selectedApplication.id}
-                            </h3>
+                            <h3 className="detail-applications__title">Заявка №{selected.id}</h3>
 
                             <ButtonLink
                                 type="button"
                                 className="detail-applications__close"
                                 onClick={closeDetailDialog}
                             >
-                                <img src={closeButton} width={24} height={24} loading="lazy" alt="Закрыть" />
+                                <img
+                                    src={closeButton}
+                                    width={24}
+                                    height={24}
+                                    loading="lazy"
+                                    alt="Закрыть"
+                                />
                             </ButtonLink>
                         </header>
+
+                        {actionError ? (
+                            <p className="detail-applications__error" role="alert">
+                                {actionError}
+                            </p>
+                        ) : null}
 
                         <div className="detail-applications__body">
                             <div className="detail-applications__customer">
@@ -196,28 +422,30 @@ export default function Applications() {
                                     <li className="detail-applications__customer-item">
                                         <span className="detail-applications__customer-label">Имя</span>
                                         <span className="detail-applications__customer-value">
-                                            {selectedApplication.fullName}
+                                            {selected.full_name}
                                         </span>
                                     </li>
-
                                     <li className="detail-applications__customer-item">
                                         <span className="detail-applications__customer-label">Телефон</span>
                                         <span className="detail-applications__customer-value">
-                                            {selectedApplication.phoneDetail}
+                                            {selected.phone}
                                         </span>
                                     </li>
-
                                     <li className="detail-applications__customer-item">
-                                        <span className="detail-applications__customer-label">Дата и время</span>
+                                        <span className="detail-applications__customer-label">
+                                            Дата и время
+                                        </span>
                                         <span className="detail-applications__customer-value">
-                                            {selectedApplication.dateDetail}
+                                            {formatDateTimeRu(
+                                                selected.event_date,
+                                                selected.event_time,
+                                            )}
                                         </span>
                                     </li>
-
                                     <li className="detail-applications__customer-item">
                                         <span className="detail-applications__customer-label">Место</span>
                                         <span className="detail-applications__customer-value">
-                                            {selectedApplication.locationFull}
+                                            {selected.location}
                                         </span>
                                     </li>
                                 </ul>
@@ -225,14 +453,25 @@ export default function Applications() {
 
                             <div className="detail-applications__goods">
                                 <h3 className="detail-applications__goods-title">Товары</h3>
-                                <ul className="detail-applications__goods-list">
-                                    {selectedApplication.goods.map((item) => (
-                                        <li key={item.label} className="detail-applications__goods-item">
-                                            <span className="detail-applications__goods-label">{item.label}</span>
-                                            <span className="detail-applications__goods-value">{item.value}</span>
-                                        </li>
-                                    ))}
-                                </ul>
+                                {goodsForDetail.length === 0 ? (
+                                    <p className="detail-applications__goods-empty">Нет позиций</p>
+                                ) : (
+                                    <ul className="detail-applications__goods-list">
+                                        {goodsForDetail.map((item) => (
+                                            <li
+                                                key={item.label}
+                                                className="detail-applications__goods-item"
+                                            >
+                                                <span className="detail-applications__goods-label">
+                                                    {item.label}
+                                                </span>
+                                                <span className="detail-applications__goods-value">
+                                                    {item.value}
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
                             </div>
 
                             <div className="detail-applications__services">
@@ -241,30 +480,29 @@ export default function Applications() {
                                     <li className="detail-applications__services-item">
                                         <span className="detail-applications__services-label">Доставка</span>
                                         <span className="detail-applications__services-value">
-                                            {selectedApplication.delivery}
+                                            {ynLabel(selected.delivery)}
                                         </span>
                                     </li>
-
                                     <li className="detail-applications__services-item">
                                         <span className="detail-applications__services-label">Сборка</span>
                                         <span className="detail-applications__services-value">
-                                            {selectedApplication.assembly}
+                                            {ynLabel(selected.assembly)}
                                         </span>
                                     </li>
-
                                     <li className="detail-applications__services-item">
                                         <span className="detail-applications__services-label">Источник</span>
                                         <span className="detail-applications__services-value">
-                                            {selectedApplication.source}
+                                            {SOURCE_LABELS[selected.source] ?? selected.source}
                                         </span>
                                     </li>
-
                                     <li className="detail-applications__services-item">
                                         <span className="detail-applications__services-label">Статус</span>
                                         <select
-                                            key={selectedApplication.id}
-                                            className="detail-applications__input-select detail-applications__input-select--table"
-                                            defaultValue={selectedApplication.status}
+                                            className={`detail-applications__input-select detail-applications__input-select--table${statusToneModifier(selected.status, 'detail-applications__input-select')}`}
+                                            value={selected.status}
+                                            onChange={(e) =>
+                                                onStatusChange(selected.id, e.target.value)
+                                            }
                                         >
                                             <option value="new">Новый</option>
                                             <option value="inwork">В работе</option>
@@ -278,13 +516,17 @@ export default function Applications() {
                         <footer className="detail-applications__footer">
                             <div className="detail-applications__price-wrapper">
                                 <span className="detail-applications__price-label">Стоимость</span>
-                                <h2 className="detail-applications__price">{selectedApplication.totalPrice}</h2>
+                                <h2 className="detail-applications__price">
+                                    {formatMoneyRub(selected.total_price)}
+                                </h2>
                             </div>
 
                             <div className="detail-applications__footer-buttons">
                                 <ButtonLink
                                     type="button"
                                     className="detail-applications__footer-edit detail-applications__footer-button"
+                                    onClick={startEdit}
+                                    disabled={saving}
                                 >
                                     <img
                                         src={editIcon}
@@ -299,6 +541,8 @@ export default function Applications() {
                                 <ButtonLink
                                     type="button"
                                     className="detail-applications__footer-edit detail-applications__footer-button"
+                                    onClick={onDelete}
+                                    disabled={saving}
                                 >
                                     <img
                                         src={deleteIcon}
@@ -313,6 +557,66 @@ export default function Applications() {
                         </footer>
                     </div>
                 )}
+            </dialog>
+
+            <dialog
+                ref={editDialogRef}
+                className="new-applications"
+                onClose={() => {
+                    setEditApp(null);
+                    setEditError('');
+                }}
+            >
+                {editApp ? (
+                    <div className="new-applications__inner">
+                        <header className="new-applications__header">
+                            <h3 className="new-applications__title">
+                                Изменить заявку №{editApp.id}
+                            </h3>
+                            <ButtonLink
+                                type="button"
+                                className="new-applications__close"
+                                onClick={closeEditDialog}
+                            >
+                                <img
+                                    src={closeButton}
+                                    width={24}
+                                    height={24}
+                                    loading="lazy"
+                                    alt="Закрыть"
+                                />
+                            </ButtonLink>
+                        </header>
+                        <form
+                            className="new-applications__form"
+                            onSubmit={handleEditSubmit}
+                            noValidate
+                        >
+                            <div key={editFormKey} className="new-applications__fields">
+                                <AdminApplicationFormBody
+                                    idPrefix={`edit-app-${editApp.id}`}
+                                    disabled={editSaving}
+                                    defaults={editApp}
+                                    showAdminMeta
+                                />
+                            </div>
+
+                            {editError ? (
+                                <p className="new-applications__error" role="alert">
+                                    {editError}
+                                </p>
+                            ) : null}
+
+                            <ButtonLink
+                                type="submit"
+                                className="button__main new-applications__form-button"
+                                disabled={editSaving}
+                            >
+                                Сохранить изменения
+                            </ButtonLink>
+                        </form>
+                    </div>
+                ) : null}
             </dialog>
         </>
     );
