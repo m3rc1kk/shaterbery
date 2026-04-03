@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import Input from '../Input/Input.jsx';
-import PhoneInput from '../Input/PhoneInput.jsx';
-import TimeInput from '../Input/TimeInput.jsx';
-import QuantityInput from '../Input/QuantityInput.jsx';
-import YesNoToggle from '../Input/YesNoToggle.jsx';
-import truckIcon from '../../assets/images/application/truck.svg';
-import truckActiveIcon from '../../assets/images/application/truck-active.svg';
-import boxIcon from '../../assets/images/application/box.svg';
-import boxActiveIcon from '../../assets/images/application/box-active.svg';
-import { stripSecondsTime } from '../../utils/format.js';
+import Input from '../../Input/Input.jsx';
+import PhoneInput from '../../Input/PhoneInput.jsx';
+import TimeInput from '../../Input/TimeInput.jsx';
+import QuantityInput from '../../Input/QuantityInput.jsx';
+import YesNoToggle from '../../Input/YesNoToggle.jsx';
+import truckIcon from '../../../assets/images/application/truck.svg';
+import truckActiveIcon from '../../../assets/images/application/truck-active.svg';
+import boxIcon from '../../../assets/images/application/box.svg';
+import boxActiveIcon from '../../../assets/images/application/box-active.svg';
+import { stripSecondsTime } from '../../../utils/format.js';
 
 /**
  * 

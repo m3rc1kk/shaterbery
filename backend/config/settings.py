@@ -14,23 +14,12 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*').split(',')
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    '192.168.0.103',
-]
 
 _cors_origins = config('CORS_ALLOWED_ORIGINS', default='').strip()
 if _cors_origins:
     CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins.split(',') if o.strip()]
 else:
-    CORS_ALLOWED_ORIGINS = [
-        'http://127.0.0.1:5173',
-        'http://localhost:5173',
-        'http://192.168.0.103:5173',
-    ]
-
-#CORS_ALLOW_CREDENTIALS = True
+    CORS_ALLOW_ALL_ORIGINS = True
 
 DJANGO_APPS = [
     'django.contrib.admin',
@@ -51,6 +40,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     'apps.accounts.apps.AccountsConfig',
     'apps.applications.apps.ApplicationsConfig',
+    'apps.dashboard.apps.DashboardConfig',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -146,7 +136,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
-    'EXCEPTION_HANDLER': 'config.api_exceptions.custom_exception_handler',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_RENDERER_CLASSES': [

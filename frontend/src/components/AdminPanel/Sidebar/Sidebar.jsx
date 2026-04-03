@@ -6,14 +6,14 @@ import applicationActiveIcon from '../../../assets/images/admin-panel/sidebar/ap
 import logoutIcon from '../../../assets/images/admin-panel/sidebar/log-out.svg'
 import logoIcon from '../../../assets/images/Logo.svg'
 import closeButton from "../../../assets/images/admin-panel/sidebar/x.svg";
-import {useEffect, useRef, useState} from "react";
+import { useEffect, useRef, useState } from "react";
 import burgerMenu from "../../../assets/images/header/menu.svg";
-import {useLocation, useNavigate} from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../auth/useAuth.js";
 import { adminCreatePayloadFromForm } from "../../../api/applicationForm.js";
 import { createApplicationAdmin } from "../../../api/applications.js";
 import { ApiError } from "../../../api/http.js";
-import AdminApplicationFormBody from "../AdminApplicationFormBody.jsx";
+import AdminApplicationFormBody from "../AdminApplicationFormBody/AdminApplicationFormBody.jsx";
 
 function adminShortName(user) {
     if (!user) return 'Админ';
@@ -144,12 +144,12 @@ export default function Sidebar() {
                         className="button__burger-menu visible-tablet sidebar__burger-menu"
                         onClick={openMenu}
                     >
-                        <img src={burgerMenu} width={24} height={24} loading='lazy' alt="Меню" className="button__burger-menu-icon"/>
+                        <img src={burgerMenu} width={24} height={24} loading='lazy' alt="Меню" className="button__burger-menu-icon" />
                     </ButtonLink>
 
                     <div className="sidebar__menu hidden-tablet">
                         <div className="sidebar__logo logo">
-                            <img src={logoIcon} width={91} height={30} loading='lazy' alt="Логотип" className="logo__image"/>
+                            <img src={logoIcon} width={91} height={30} loading='lazy' alt="Логотип" className="logo__image" />
                         </div>
 
                         <nav className="sidebar__nav">
@@ -202,7 +202,7 @@ export default function Sidebar() {
                                 onClick={handleLogout}
                                 aria-label="Выход из аккаунта"
                             >
-                                <img src={logoutIcon} width={20} height={20} loading={'lazy'} alt="" className="sidebar__logout"/>
+                                <img src={logoutIcon} width={20} height={20} loading={'lazy'} alt="" className="sidebar__logout" />
                             </button>
                         </div>
                     </div>
@@ -218,11 +218,11 @@ export default function Sidebar() {
                 <div className="sidebar__mobile-menu">
                     <div className="sidebar__mobile-header">
                         <div className="sidebar__logo logo">
-                            <img src={logoIcon} width={91} height={30} loading='lazy' alt="Логотип" className="logo__image"/>
+                            <img src={logoIcon} width={91} height={30} loading='lazy' alt="Логотип" className="logo__image" />
                         </div>
 
                         <ButtonLink className="sidebar__mobile-close" onClick={closeMenu}>
-                            <img src={closeButton} width={24} height={24} loading='lazy' alt="Закрыть меню"/>
+                            <img src={closeButton} width={24} height={24} loading='lazy' alt="Закрыть меню" />
                         </ButtonLink>
                     </div>
 
@@ -285,7 +285,7 @@ export default function Sidebar() {
                             onClick={() => { closeMenu(); handleLogout(); }}
                             aria-label="Выход из аккаунта"
                         >
-                            <img src={logoutIcon} width={20} height={20} loading={'lazy'} alt="" className="sidebar__logout"/>
+                            <img src={logoutIcon} width={20} height={20} loading={'lazy'} alt="" className="sidebar__logout" />
                         </button>
                     </div>
                 </div>
@@ -303,7 +303,7 @@ export default function Sidebar() {
                             className="new-applications__close"
                             onClick={closeNewApplicationDialog}
                         >
-                            <img src={closeButton} width={24} height={24} loading='lazy' alt="Закрыть"/>
+                            <img src={closeButton} width={24} height={24} loading='lazy' alt="Закрыть" />
                         </ButtonLink>
                     </header>
                     <form className="new-applications__form" onSubmit={handleNewApplicationSubmit} noValidate>

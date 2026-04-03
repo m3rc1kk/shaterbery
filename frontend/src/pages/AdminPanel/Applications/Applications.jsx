@@ -5,7 +5,7 @@ import closeButton from '../../../assets/images/admin-panel/sidebar/x.svg';
 import ButtonLink from '../../../components/Button/ButtonLink.jsx';
 import editIcon from '../../../assets/images/admin-panel/applications/edit.svg';
 import deleteIcon from '../../../assets/images/admin-panel/applications/delete.svg';
-import AdminApplicationFormBody from '../../../components/AdminPanel/AdminApplicationFormBody.jsx';
+import AdminApplicationFormBody from '../../../components/AdminPanel/AdminApplicationFormBody/AdminApplicationFormBody.jsx';
 import {
     buildApplicationsListPath,
     deleteApplication,
@@ -58,6 +58,8 @@ export default function Applications() {
     const navigate = useNavigate();
     const detailDialogRef = useRef(null);
     const editDialogRef = useRef(null);
+    const confirmDialogRef = useRef(null);
+    const confirmResolveRef = useRef(null);
     const tableWrapRef = useRef(null);
     const sentinelRef = useRef(null);
     const nextPathRef = useRef(null);
@@ -227,15 +229,23 @@ export default function Applications() {
         }
     };
 
+    function showConfirm() {
+        return new Promise((resolve) => {
+            confirmResolveRef.current = resolve;
+            confirmDialogRef.current?.showModal();
+        });
+    }
+
+    const closeConfirm = (result) => {
+        confirmDialogRef.current?.close();
+        confirmResolveRef.current?.(result);
+        confirmResolveRef.current = null;
+    };
+
     const onDelete = async () => {
         if (!selected) return;
-        if (
-            !window.confirm(
-                `Удалить заявку №${selected.id}? Действие необратимо.`,
-            )
-        ) {
-            return;
-        }
+        const confirmed = await showConfirm();
+        if (!confirmed) return;
         setSaving(true);
         setActionError('');
         try {
@@ -296,8 +306,8 @@ export default function Applications() {
                                     <th className="applications__th">Дата</th>
                                     <th className="applications__th">Место</th>
                                     <th className="applications__th">Цена</th>
-                                    <th className="applications__th">Откуда</th>
-                                    <th className="applications__th">Состав</th>
+                                    <th className="applications__th applications__resource">Откуда</th>
+                                    <th className="applications__th applications__composition">Состав</th>
                                     <th className="applications__th">Статус</th>
                                 </tr>
                             </thead>
@@ -617,6 +627,35 @@ export default function Applications() {
                         </form>
                     </div>
                 ) : null}
+            </dialog>
+
+            <dialog
+                ref={confirmDialogRef}
+                className="confirm-dialog"
+                onClose={() => closeConfirm(false)}
+            >
+                <div className="confirm-dialog__inner">
+                    <h3 className="confirm-dialog__title">Удаление заявки</h3>
+                    <p className="confirm-dialog__text">
+                        Вы уверены, что хотите удалить заявку{selected ? ` №${selected.id}` : ''}? Это действие необратимо.
+                    </p>
+                    <div className="confirm-dialog__buttons">
+                        <button
+                            type="button"
+                            className="confirm-dialog__btn"
+                            onClick={() => closeConfirm(false)}
+                        >
+                            Отмена
+                        </button>
+                        <button
+                            type="button"
+                            className="confirm-dialog__btn confirm-dialog__btn--danger"
+                            onClick={() => closeConfirm(true)}
+                        >
+                            Удалить
+                        </button>
+                    </div>
+                </div>
             </dialog>
         </>
     );

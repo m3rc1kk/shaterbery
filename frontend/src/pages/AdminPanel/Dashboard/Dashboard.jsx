@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import Sidebar from "../../../components/AdminPanel/Sidebar/Sidebar.jsx";
 import DashboardCard from "../../../components/AdminPanel/DashboardCard/DashboardCard.jsx";
 import Graph from "../../../components/AdminPanel/Graph/Graph.jsx";
@@ -9,41 +10,12 @@ import applicationIcon from '../../../assets/images/admin-panel/dashboard/Card/a
 import applicationInDelayIcon from '../../../assets/images/admin-panel/dashboard/Card/application-in-delay.svg'
 import money2Icon from '../../../assets/images/admin-panel/dashboard/Card/money2.svg'
 import bookmarkIcon from '../../../assets/images/admin-panel/dashboard/Card/bookmark.svg'
-
-const RECENT_APPLICATIONS = [
-    {
-        id: 1,
-        clientName: 'Мария С.',
-        phone: '+7 (953) 436 32 54',
-        date: '12 июл 2026, 15:00',
-        price: '4100₽',
-        status: 'inwork',
-    },
-    {
-        id: 2,
-        clientName: 'Алексей П.',
-        phone: '+7 (916) 112 44 09',
-        date: '11 июл 2026, 11:30',
-        price: '6800₽',
-        status: 'closed',
-    },
-    {
-        id: 3,
-        clientName: 'Елена К.',
-        phone: '+7 (903) 555 12 88',
-        date: '10 июл 2026, 18:00',
-        price: '3200₽',
-        status: 'new',
-    },
-    {
-        id: 4,
-        clientName: 'Иван Д.',
-        phone: '+7 (977) 901 23 45',
-        date: '9 июл 2026, 14:15',
-        price: '5500₽',
-        status: 'inwork',
-    },
-]
+import {
+    fetchDashboardCards,
+    fetchDashboardGraphs,
+    fetchDashboardPopular,
+    fetchDashboardRecent,
+} from "../../../api/dashboard.js";
 
 const STATUS_LABELS = {
     new: 'Новый',
@@ -52,6 +24,23 @@ const STATUS_LABELS = {
 }
 
 export default function Dashboard() {
+    const [cards, setCards] = useState(null);
+    const [graphs, setGraphs] = useState(null);
+    const [popular, setPopular] = useState(null);
+    const [recent, setRecent] = useState(null);
+
+    useEffect(() => {
+        fetchDashboardCards().then(setCards).catch(() => {});
+        fetchDashboardGraphs().then(setGraphs).catch(() => {});
+        fetchDashboardPopular().then(setPopular).catch(() => {});
+        fetchDashboardRecent().then(setRecent).catch(() => {});
+    }, []);
+
+    const revenue = cards?.revenue;
+    const appCount = cards?.applications_count;
+    const avgCheck = cards?.average_check;
+    const pending = cards?.pending;
+
     return (
         <>
             <Sidebar />
@@ -60,41 +49,41 @@ export default function Dashboard() {
                     <ul className="dashboard__card-list">
                         <li className="dashboard__card-item">
                             <DashboardCard
-                                title={"Прибыль за месяц"}
-                                value={'123.542₽'}
-                                additionalValue={'+18%'}
+                                title={revenue?.title ?? 'Прибыль за месяц'}
+                                value={revenue?.value ?? '—'}
+                                additionalValue={revenue?.additional_value ?? '—'}
                                 hideAdditionalOnHd1440={true}
                                 icon={moneyIcon}
-                                chevron={chevronUpIcon} />
+                                chevron={revenue?.direction === 'down' ? chevronDownIcon : chevronUpIcon} />
                         </li>
 
                         <li className="dashboard__card-item">
                             <DashboardCard
-                                title={"Заявок за месяц"}
-                                value={'356'}
-                                additionalValue={'-18%'}
+                                title={appCount?.title ?? 'Заявок за месяц'}
+                                value={appCount?.value ?? '—'}
+                                additionalValue={appCount?.additional_value ?? '—'}
                                 hideAdditionalOnHd1440={true}
                                 icon={applicationIcon}
-                                chevron={chevronDownIcon} />
+                                chevron={appCount?.direction === 'down' ? chevronDownIcon : chevronUpIcon} />
                         </li>
 
                         <li className="dashboard__card-item">
                             <DashboardCard
-                                title={"Средний чек"}
-                                value={'7.123₽'}
-                                additionalValue={'+18%'}
+                                title={avgCheck?.title ?? 'Средний чек'}
+                                value={avgCheck?.value ?? '—'}
+                                additionalValue={avgCheck?.additional_value ?? '—'}
                                 hideAdditionalOnHd1440={true}
                                 icon={money2Icon}
-                                chevron={chevronUpIcon} />
+                                chevron={avgCheck?.direction === 'down' ? chevronDownIcon : chevronUpIcon} />
                         </li>
 
                         <li className="dashboard__card-item">
                             <DashboardCard
-                                title={"Заявок в ожидании"}
-                                value={'7'}
-                                additionalValue={'+3'}
+                                title={pending?.title ?? 'Заявок в ожидании'}
+                                value={pending?.value ?? '—'}
+                                additionalValue={pending?.additional_value ?? '—'}
                                 additionalValueColor={'accent'}
-                                additionalSuffix={'за сегодня'}
+                                additionalSuffix={pending?.additional_suffix ?? 'за сегодня'}
                                 hideAdditionalOnHd1440={true}
                                 icon={applicationInDelayIcon}
                                 chevron={bookmarkIcon} />
@@ -107,19 +96,10 @@ export default function Dashboard() {
                             color="#30BE0C"
                             fillTopColor="rgba(48, 190, 12, 0.24)"
                             fillBottomColor="rgba(48, 190, 12, 0)"
-                            periods={{
-                                week: {
-                                    labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
-                                    values: [42, 47, 45, 58, 52, 61, 56]
-                                },
-                                month: {
-                                    labels: ['1', '5', '10', '15', '20', '25', '30'],
-                                    values: [38, 49, 44, 67, 50, 59, 54]
-                                },
-                                year: {
-                                    labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл'],
-                                    values: [45, 52, 46, 71, 49, 60, 54]
-                                }
+                            periods={graphs?.revenue ?? {
+                                week: { labels: [], values: [] },
+                                month: { labels: [], values: [] },
+                                year: { labels: [], values: [] },
                             }}
                         />
                         <Graph
@@ -127,26 +107,17 @@ export default function Dashboard() {
                             color="#3392FF"
                             fillTopColor="rgba(51, 146, 255, 0.24)"
                             fillBottomColor="rgba(51, 146, 255, 0)"
-                            periods={{
-                                week: {
-                                    labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
-                                    values: [45, 53, 49, 60, 55, 63, 57]
-                                },
-                                month: {
-                                    labels: ['1', '5', '10', '15', '20', '25', '30'],
-                                    values: [40, 52, 47, 70, 51, 59, 55]
-                                },
-                                year: {
-                                    labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл'],
-                                    values: [48, 55, 49, 73, 53, 62, 56]
-                                }
+                            periods={graphs?.applications ?? {
+                                week: { labels: [], values: [] },
+                                month: { labels: [], values: [] },
+                                year: { labels: [], values: [] },
                             }}
                         />
                     </div>
 
                     <div className="dashboard__lastline">
                         <div className="dashboard__popular">
-                            <PopularGraph />
+                            <PopularGraph items={popular?.items} />
                         </div>
 
                         <div className="dashboard__recently-applications">
@@ -171,11 +142,11 @@ export default function Dashboard() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {RECENT_APPLICATIONS.slice(0, 4).map((row) => (
+                                            {(recent?.applications ?? []).map((row) => (
                                                 <tr className="recent-apps__tr" key={row.id}>
                                                     <td className="recent-apps__td recent-apps__client">
                                                         <span className="recent-apps__client-name">
-                                                            {row.clientName}
+                                                            {row.client_name}
                                                         </span>
                                                         <span className="recent-apps__client-phone">
                                                             {row.phone}

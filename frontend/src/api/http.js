@@ -48,6 +48,10 @@ export function apiErrorMessage(body, status) {
             const s = typeof d === 'string' ? d : String(d);
             return translateKnownEnglish(s);
         }
+        // Per-field validation errors (e.g. {"name": ["..."], "phone": ["..."]})
+        if (status === 400 && !body.detail) {
+            return 'Вы заполнили не все поля';
+        }
         const values = Object.values(body).flat();
         const first = values.find((v) => typeof v === 'string') || values[0];
         if (typeof first === 'string') return translateKnownEnglish(first);
