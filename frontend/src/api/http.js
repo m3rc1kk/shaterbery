@@ -1,5 +1,10 @@
 import { API_BASE } from './config.js';
-import { clearAuthSession, getAccessToken } from './authStorage.js';
+import {
+    clearAuthSession,
+    getAccessToken,
+    getRefreshToken,
+    setAuthSession,
+} from './authStorage.js';
 
 const EN_TO_RU_DETAIL = {
     'Invalid username or password': 'Неверный логин или пароль',
@@ -48,15 +53,34 @@ export function apiErrorMessage(body, status) {
             const s = typeof d === 'string' ? d : String(d);
             return translateKnownEnglish(s);
         }
-        // Per-field validation errors (e.g. {"name": ["..."], "phone": ["..."]})
         if (status === 400 && !body.detail) {
+            const values = Object.values(body).flat();
+            const first = values.find((v) => typeof v === 'string') || values[0];
+            
+            function isRequiredError(msg) {
+                const l = msg.toLowerCase();
+                return l.includes('required') || 
+                       l.includes('обязательн') || 
+                       l.includes('blank') || 
+                       l.includes('пустым') || 
+                       l.includes('null');
+            }
+
+            if (typeof first === 'string') {
+                const translated = translateKnownEnglish(first);
+                if (isRequiredError(translated)) {
+                    return 'Вы заполнили не все поля';
+                }
+                return translated;
+            }
+            if (Array.isArray(first) && first.length && typeof first[0] === 'string') {
+                const translated = translateKnownEnglish(first[0]);
+                if (isRequiredError(translated)) {
+                    return 'Вы заполнили не все поля';
+                }
+                return translated;
+            }
             return 'Вы заполнили не все поля';
-        }
-        const values = Object.values(body).flat();
-        const first = values.find((v) => typeof v === 'string') || values[0];
-        if (typeof first === 'string') return translateKnownEnglish(first);
-        if (Array.isArray(first) && first.length && typeof first[0] === 'string') {
-            return translateKnownEnglish(first[0]);
         }
     }
     if (status === 401) return 'Требуется вход';
@@ -77,7 +101,29 @@ export async function readJsonBody(response) {
     }
 }
 
-export async function apiFetch(path, { method = 'GET', body, auth = false, headers = {} } = {}) {
+let _refreshPromise = null;
+
+async function refreshAccessToken() {
+    const refresh = getRefreshToken();
+    if (!refresh) return null;
+
+    const res = await fetch(`${API_BASE}/api/v1/auth/token/refresh/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh }),
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    setAuthSession({
+        access: data.access,
+        refresh: data.refresh || refresh,
+    });
+    return data.access;
+}
+
+export async function apiFetch(path, { method = 'GET', body, auth = false, headers = {}, _retried = false } = {}) {
     const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
     const h = { ...headers };
     if (body !== undefined && !(body instanceof FormData)) {
@@ -94,10 +140,19 @@ export async function apiFetch(path, { method = 'GET', body, auth = false, heade
         headers: h,
         body: body instanceof FormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
     });
-    if (response.status === 401 && auth) {
+
+    if (response.status === 401 && auth && !_retried) {
+        if (!_refreshPromise) {
+            _refreshPromise = refreshAccessToken().finally(() => { _refreshPromise = null; });
+        }
+        const newToken = await _refreshPromise;
+        if (newToken) {
+            return apiFetch(path, { method, body, auth, headers, _retried: true });
+        }
         clearAuthSession();
         window.dispatchEvent(new CustomEvent('shaterbery:auth-lost'));
     }
+
     return response;
 }
 

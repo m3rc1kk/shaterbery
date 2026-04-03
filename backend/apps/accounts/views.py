@@ -1,13 +1,19 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializers import UserLoginSerializer, UserSerializer
 
 
+class AuthThrottle(AnonRateThrottle):
+    scope = 'auth'
+
+
 class UserLoginView(generics.GenericAPIView):
     serializer_class = UserLoginSerializer
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [AuthThrottle]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
