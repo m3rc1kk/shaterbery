@@ -72,6 +72,10 @@ export default function Applications() {
     const [editError, setEditError] = useState('');
     const [editSaving, setEditSaving] = useState(false);
 
+    const [editingPrice, setEditingPrice] = useState(false);
+    const [priceInput, setPriceInput] = useState('');
+    const [priceSaving, setPriceSaving] = useState(false);
+
     const [searchInput, setSearchInput] = useState('');
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -167,6 +171,8 @@ export default function Applications() {
     const openDetailDialog = (app) => {
         setActionError('');
         setSelected(app);
+        setEditingPrice(false);
+        setPriceInput('');
         setTimeout(() => detailDialogRef.current?.showModal(), 0);
     };
 
@@ -174,6 +180,41 @@ export default function Applications() {
         detailDialogRef.current?.close();
         setSelected(null);
         setActionError('');
+        setEditingPrice(false);
+    };
+
+    const startPriceEdit = () => {
+        if (!selected) return;
+        setPriceInput(String(Math.round(Number(selected.total_price) || 0)));
+        setEditingPrice(true);
+    };
+
+    const cancelPriceEdit = () => {
+        setEditingPrice(false);
+        setPriceInput('');
+    };
+
+    const savePriceEdit = async () => {
+        if (!selected) return;
+        const num = Number(priceInput);
+        if (!Number.isFinite(num) || num < 0) {
+            setActionError('Введите корректную сумму');
+            return;
+        }
+        setPriceSaving(true);
+        setActionError('');
+        try {
+            const updated = await patchApplication(selected.id, { total_price: num });
+            setList((prev) => mergeUpdated(prev, selected.id, updated));
+            setSelected((s) => (s && s.id === selected.id ? { ...s, ...updated } : s));
+            setEditingPrice(false);
+        } catch (err) {
+            setActionError(
+                err instanceof ApiError ? err.message : 'Не удалось сохранить цену',
+            );
+        } finally {
+            setPriceSaving(false);
+        }
     };
 
     const closeEditDialog = () => {
@@ -526,9 +567,62 @@ export default function Applications() {
                         <footer className="detail-applications__footer">
                             <div className="detail-applications__price-wrapper">
                                 <span className="detail-applications__price-label">Стоимость</span>
-                                <h2 className="detail-applications__price">
-                                    {formatMoneyRub(selected.total_price)}
-                                </h2>
+                                {editingPrice ? (
+                                    <div className="detail-applications__price-edit">
+                                        <input
+                                            type="number"
+                                            className="detail-applications__price-input"
+                                            value={priceInput}
+                                            onChange={(e) => setPriceInput(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') savePriceEdit();
+                                                if (e.key === 'Escape') cancelPriceEdit();
+                                            }}
+                                            min="0"
+                                            autoFocus
+                                            disabled={priceSaving}
+                                        />
+                                        <span className="detail-applications__price-currency">₽</span>
+                                        <button
+                                            type="button"
+                                            className="detail-applications__price-save"
+                                            onClick={savePriceEdit}
+                                            disabled={priceSaving}
+                                            aria-label="Сохранить цену"
+                                        >
+                                            ✓
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="detail-applications__price-cancel"
+                                            onClick={cancelPriceEdit}
+                                            disabled={priceSaving}
+                                            aria-label="Отменить"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="detail-applications__price-display">
+                                        <h2 className="detail-applications__price">
+                                            {formatMoneyRub(selected.total_price)}
+                                        </h2>
+                                        <button
+                                            type="button"
+                                            className="detail-applications__price-edit-btn"
+                                            onClick={startPriceEdit}
+                                            aria-label="Изменить цену"
+                                        >
+                                            <img
+                                                src={editIcon}
+                                                width={16}
+                                                height={16}
+                                                loading="lazy"
+                                                alt="Изменить цену"
+                                            />
+                                        </button>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="detail-applications__footer-buttons">

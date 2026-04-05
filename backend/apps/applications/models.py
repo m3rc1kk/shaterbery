@@ -114,5 +114,6 @@ class Application(models.Model):
         return ', '.join(parts) if parts else '—'
 
     def save(self, *args, **kwargs):
-        self.total_price = self.compute_total_price()
+        if not getattr(self, '_skip_price_compute', False):
+            self.total_price = self.compute_total_price()
         super().save(*args, **kwargs)

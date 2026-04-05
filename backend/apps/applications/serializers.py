@@ -34,7 +34,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'total_price', 'goods_lines', 'composition_summary', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'goods_lines', 'composition_summary', 'created_at', 'updated_at']
         extra_kwargs = {
             'location': {'max_length': MAX_LOCATION_LENGTH},
             'tent_3x6_qty': {'min_value': 0, 'max_value': MAX_LINE_QTY},
@@ -42,7 +42,13 @@ class ApplicationSerializer(serializers.ModelSerializer):
             'furniture_qty': {'min_value': 0, 'max_value': MAX_LINE_QTY},
             'chairs_qty': {'min_value': 0, 'max_value': MAX_LINE_QTY},
             'bulb_qty': {'min_value': 0, 'max_value': MAX_LINE_QTY},
+            'total_price': {'required': False, 'min_value': 0},
         }
+
+    def update(self, instance, validated_data):
+        if 'total_price' in validated_data:
+            instance._skip_price_compute = True
+        return super().update(instance, validated_data)
 
     def get_goods_lines(self, obj: Application):
         return obj.goods_lines()

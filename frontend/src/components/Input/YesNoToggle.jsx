@@ -35,10 +35,16 @@ export default function YesNoToggle({
     iconNo,
     defaultYes = false,
     disabled = false,
+    onToggle,
 }) {
     const baseId = useId();
     const [yes, setYes] = useState(defaultYes);
     const icon = yes ? iconYes : iconNo;
+
+    const toggle = (v) => {
+        setYes(v);
+        onToggle?.(v);
+    };
 
     return (
         <div className={`field toggle-field ${className}`.trim()}>
@@ -57,7 +63,7 @@ export default function YesNoToggle({
                     <button
                         type="button"
                         className={`toggle-field__seg${yes ? ' toggle-field__seg--active' : ''}`}
-                        onClick={() => setYes(true)}
+                        onClick={() => toggle(true)}
                         aria-label="Да"
                         disabled={disabled}
                     >
@@ -66,7 +72,7 @@ export default function YesNoToggle({
                     <button
                         type="button"
                         className={`toggle-field__seg${!yes ? ' toggle-field__seg--active' : ''}`}
-                        onClick={() => setYes(false)}
+                        onClick={() => toggle(false)}
                         aria-label="Нет"
                         disabled={disabled}
                     >

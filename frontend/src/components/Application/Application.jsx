@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import mailIcon from '../../assets/images/application/mail.svg'
 import compassIcon from '../../assets/images/application/compass.svg'
 import timeIcon from '../../assets/images/application/clock.svg'
@@ -16,12 +16,41 @@ import YesNoToggle from "../Input/YesNoToggle.jsx";
 import { publicSubmitPayloadFromForm } from '../../api/applicationForm.js';
 import { submitPublicApplication } from '../../api/applications.js';
 import { ApiError } from '../../api/http.js';
+import { formatMoneyRub } from '../../utils/format.js';
+
+const PRICES = {
+    tent3x6: 2000,
+    tent3x3: 1500,
+    furniture: 500,
+    chairs: 200,
+    bulb: 100,
+};
 
 export default function Application() {
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
     const [pending, setPending] = useState(false);
     const [fieldsKey, setFieldsKey] = useState(0);
+
+    const [qty, setQty] = useState({
+        tent3x6: 0,
+        tent3x3: 0,
+        furniture: 0,
+        chairs: 0,
+        bulb: 0,
+    });
+    const [delivery, setDelivery] = useState(true);
+
+    const handleQtyChange = useCallback((name, value) => {
+        setQty((prev) => ({ ...prev, [name]: value }));
+    }, []);
+
+    const totalPrice = useMemo(() => {
+        return Object.entries(qty).reduce(
+            (sum, [key, count]) => sum + count * (PRICES[key] ?? 0),
+            0,
+        );
+    }, [qty]);
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -36,6 +65,8 @@ export default function Application() {
             setMessage('Заявка отправлена. Мы свяжемся с вами в ближайшее время.');
             form.reset();
             setFieldsKey((k) => k + 1);
+            setQty({ tent3x6: 0, tent3x3: 0, furniture: 0, chairs: 0, bulb: 0 });
+            setDelivery(true);
         } catch (err) {
             const text = err instanceof ApiError ? err.message : 'Не удалось отправить заявку';
             setError(text);
@@ -66,21 +97,21 @@ export default function Application() {
                                 </div>
                             </li>
                             <li className="application__contact-item">
-                                <img src={mailIcon} width={20} height={20} loading='lazy' alt="Телефон" className="application__contact-icon"/>
+                                <img src={mailIcon} width={20} height={20} loading='lazy' alt="Почта" className="application__contact-icon"/>
                                 <div className="application__contact-body">
                                     <span className="application__contact-subtitle">Почта</span>
                                     <span className="application__contact-title">example@gmail.com</span>
                                 </div>
                             </li>
                             <li className="application__contact-item">
-                                <img src={timeIcon} width={20} height={20} loading='lazy' alt="Телефон" className="application__contact-icon"/>
+                                <img src={timeIcon} width={20} height={20} loading='lazy' alt="Режим работы" className="application__contact-icon"/>
                                 <div className="application__contact-body">
                                     <span className="application__contact-subtitle">Режим работы</span>
                                     <span className="application__contact-title">8:00 - 22:00, UTC+3</span>
                                 </div>
                             </li>
                             <li className="application__contact-item">
-                                <img src={compassIcon} width={20} height={20} loading='lazy' alt="Телефон" className="application__contact-icon"/>
+                                <img src={compassIcon} width={20} height={20} loading='lazy' alt="Зона работы" className="application__contact-icon"/>
                                 <div className="application__contact-body">
                                     <span className="application__contact-subtitle">Зона работы</span>
                                     <span className="application__contact-title">Орловская область</span>
@@ -150,6 +181,7 @@ export default function Application() {
                                 label="Шатёр 3×6м - 2.000 ₽/сут"
                                 className="field__input--half"
                                 disabled={pending}
+                                onValueChange={(v) => handleQtyChange('tent3x6', v)}
                             />
 
                             <QuantityInput
@@ -158,6 +190,7 @@ export default function Application() {
                                 label="Шатёр 3×3м - 1.500₽/сут"
                                 className="field__input--half"
                                 disabled={pending}
+                                onValueChange={(v) => handleQtyChange('tent3x3', v)}
                             />
                         </div>
 
@@ -168,6 +201,7 @@ export default function Application() {
                                 label="Комплект мебели - 500₽/сут"
                                 className="field__input--third"
                                 disabled={pending}
+                                onValueChange={(v) => handleQtyChange('furniture', v)}
                             />
 
                             <QuantityInput
@@ -176,6 +210,7 @@ export default function Application() {
                                 label="Стул раскладной - 200₽/шт"
                                 className="field__input--third"
                                 disabled={pending}
+                                onValueChange={(v) => handleQtyChange('chairs', v)}
                             />
 
                             <QuantityInput
@@ -184,6 +219,7 @@ export default function Application() {
                                 label="Лампочка - 100₽/шт"
                                 className="field__input--third"
                                 disabled={pending}
+                                onValueChange={(v) => handleQtyChange('bulb', v)}
                             />
                         </div>
 
@@ -196,6 +232,7 @@ export default function Application() {
                                 defaultYes
                                 className="field__input--half"
                                 disabled={pending}
+                                onToggle={setDelivery}
                             />
                             <YesNoToggle
                                 label="Сборка"
@@ -207,6 +244,22 @@ export default function Application() {
                             />
                         </div>
                         </div>
+
+                        {totalPrice > 0 ? (
+                            <div className="application__form-total">
+                                <div className="application__form-total-row">
+                                    <span className="application__form-total-label">Итого:</span>
+                                    <span className="application__form-total-value">
+                                        {formatMoneyRub(totalPrice)}
+                                    </span>
+                                </div>
+                                {delivery ? (
+                                    <span className="application__form-total-hint">
+                                        * без учёта доставки
+                                    </span>
+                                ) : null}
+                            </div>
+                        ) : null}
 
                         {message ? (
                             <p className="application__form-message application__form-message--ok" role="status">

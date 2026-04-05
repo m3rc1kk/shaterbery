@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import Input from '../../Input/Input.jsx';
 import PhoneInput from '../../Input/PhoneInput.jsx';
 import TimeInput from '../../Input/TimeInput.jsx';
@@ -8,7 +8,15 @@ import truckIcon from '../../../assets/images/application/truck.svg';
 import truckActiveIcon from '../../../assets/images/application/truck-active.svg';
 import boxIcon from '../../../assets/images/application/box.svg';
 import boxActiveIcon from '../../../assets/images/application/box-active.svg';
-import { stripSecondsTime } from '../../../utils/format.js';
+import { stripSecondsTime, formatMoneyRub } from '../../../utils/format.js';
+
+const PRICES = {
+    tent3x6: 2000,
+    tent3x3: 1500,
+    furniture: 500,
+    chairs: 200,
+    bulb: 100,
+};
 
 /**
  * 
@@ -41,6 +49,26 @@ export default function AdminApplicationFormBody({
     const status = d.status ?? 'new';
 
     const [liveStatus, setLiveStatus] = useState(() => (showAdminMeta ? status : 'new'));
+
+    const [qty, setQty] = useState({
+        tent3x6: Number(tent3x6) || 0,
+        tent3x3: Number(tent3x3) || 0,
+        furniture: Number(furniture) || 0,
+        chairs: Number(chairs) || 0,
+        bulb: Number(bulb) || 0,
+    });
+    const [liveDelivery, setLiveDelivery] = useState(Boolean(delivery));
+
+    const handleQtyChange = useCallback((fieldName, value) => {
+        setQty((prev) => ({ ...prev, [fieldName]: value }));
+    }, []);
+
+    const totalPrice = useMemo(() => {
+        return Object.entries(qty).reduce(
+            (sum, [key, count]) => sum + count * (PRICES[key] ?? 0),
+            0,
+        );
+    }, [qty]);
 
     const statusFieldClass =
         liveStatus === 'new'
@@ -113,6 +141,7 @@ export default function AdminApplicationFormBody({
                     className="field__input--half"
                     disabled={disabled}
                     defaultValue={tent3x6}
+                    onValueChange={(v) => handleQtyChange('tent3x6', v)}
                 />
 
                 <QuantityInput
@@ -122,6 +151,7 @@ export default function AdminApplicationFormBody({
                     className="field__input--half"
                     disabled={disabled}
                     defaultValue={tent3x3}
+                    onValueChange={(v) => handleQtyChange('tent3x3', v)}
                 />
             </div>
 
@@ -133,6 +163,7 @@ export default function AdminApplicationFormBody({
                     className="field__input--third"
                     disabled={disabled}
                     defaultValue={furniture}
+                    onValueChange={(v) => handleQtyChange('furniture', v)}
                 />
 
                 <QuantityInput
@@ -142,6 +173,7 @@ export default function AdminApplicationFormBody({
                     className="field__input--third"
                     disabled={disabled}
                     defaultValue={chairs}
+                    onValueChange={(v) => handleQtyChange('chairs', v)}
                 />
 
                 <QuantityInput
@@ -151,6 +183,7 @@ export default function AdminApplicationFormBody({
                     className="field__input--third"
                     disabled={disabled}
                     defaultValue={bulb}
+                    onValueChange={(v) => handleQtyChange('bulb', v)}
                 />
             </div>
 
@@ -163,6 +196,7 @@ export default function AdminApplicationFormBody({
                     defaultYes={Boolean(delivery)}
                     className="field__input--half"
                     disabled={disabled}
+                    onToggle={setLiveDelivery}
                 />
                 <YesNoToggle
                     label="Сборка"
@@ -174,6 +208,22 @@ export default function AdminApplicationFormBody({
                     disabled={disabled}
                 />
             </div>
+
+            {totalPrice > 0 ? (
+                <div className="new-applications__form-total">
+                    <div className="new-applications__form-total-row">
+                        <span className="new-applications__form-total-label">Итого:</span>
+                        <span className="new-applications__form-total-value">
+                            {formatMoneyRub(totalPrice)}
+                        </span>
+                    </div>
+                    {liveDelivery ? (
+                        <span className="new-applications__form-total-hint">
+                            * без учёта доставки
+                        </span>
+                    ) : null}
+                </div>
+            ) : null}
 
             {showAdminMeta ? (
                 <div className="new-applications__form-admin-meta">

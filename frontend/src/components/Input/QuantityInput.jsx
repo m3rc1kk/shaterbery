@@ -9,6 +9,7 @@ export default function QuantityInput({
     max,
     defaultValue = 0,
     disabled = false,
+    onValueChange,
 }) {
     const [value, setValue] = useState(() =>
         Math.max(min, Number(defaultValue) || 0),
@@ -23,18 +24,23 @@ export default function QuantityInput({
         [min, max],
     );
 
-    const dec = () => setValue((v) => clamp(v - 1));
-    const inc = () => setValue((v) => clamp(v + 1));
+    const update = (v) => {
+        setValue(v);
+        onValueChange?.(v);
+    };
+
+    const dec = () => setValue((v) => { const n = clamp(v - 1); onValueChange?.(n); return n; });
+    const inc = () => setValue((v) => { const n = clamp(v + 1); onValueChange?.(n); return n; });
 
     const onChange = (e) => {
         const raw = e.target.value;
         if (raw === '') {
-            setValue(0);
+            update(0);
             return;
         }
         const n = parseInt(raw, 10);
         if (Number.isNaN(n)) return;
-        setValue(clamp(n));
+        update(clamp(n));
     };
 
     return (
