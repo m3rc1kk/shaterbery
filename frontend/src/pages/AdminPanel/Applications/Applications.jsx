@@ -499,6 +499,12 @@ export default function Applications() {
                                             {selected.location}
                                         </span>
                                     </li>
+                                    <li className="detail-applications__customer-item">
+                                        <span className="detail-applications__customer-label">Суток</span>
+                                        <span className="detail-applications__customer-value">
+                                            {selected.rental_days ?? 1}
+                                        </span>
+                                    </li>
                                 </ul>
                             </div>
 

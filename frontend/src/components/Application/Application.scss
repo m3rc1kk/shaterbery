@@ -1,5 +1,5 @@
 .application {
-  max-height: 670px;
+  max-height: 860px;
   height: 100%;
 
   @include mobile {
@@ -129,8 +129,8 @@
       min-width: 0;
       width: 100%;
 
-      > .field.field__input--half,
-      > .field.field__input--third {
+      >.field.field__input--half,
+      >.field.field__input--third {
         flex: 1 1 0;
         min-width: 0;
         width: auto;
@@ -143,8 +143,8 @@
         row-gap: 16px;
         column-gap: 0;
 
-        > .field.field__input--half,
-        > .field.field__input--third {
+        >.field.field__input--half,
+        >.field.field__input--third {
           flex: none;
           width: 100%;
           max-width: 100%;
@@ -204,6 +204,7 @@
     opacity: 0;
     transform: translateY(-4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

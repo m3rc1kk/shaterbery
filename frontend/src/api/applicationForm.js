@@ -27,6 +27,7 @@ export function publicSubmitPayloadFromForm(form) {
         furniture: intOrZero(fd.get('furniture')),
         chairs: intOrZero(fd.get('chairs')),
         bulb: intOrZero(fd.get('bulb')),
+        days: Math.max(1, intOrZero(fd.get('days')) || 1),
         delivery: yn(String(fd.get('delivery') ?? 'no')),
         assembly: yn(String(fd.get('assembly') ?? 'no')),
     };
@@ -45,6 +46,7 @@ export function adminCreatePayloadFromForm(form) {
         furniture_qty: p.furniture,
         chairs_qty: p.chairs,
         bulb_qty: p.bulb,
+        rental_days: p.days,
         delivery: p.delivery,
         assembly: p.assembly,
         source: 'manual',
@@ -66,6 +68,7 @@ export function adminPatchPayloadFromForm(form) {
         furniture_qty: p.furniture,
         chairs_qty: p.chairs,
         bulb_qty: p.bulb,
+        rental_days: p.days,
         delivery: p.delivery,
         assembly: p.assembly,
         source: String(fd.get('source') ?? 'site'),

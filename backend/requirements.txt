@@ -9,3 +9,4 @@ python-decouple==3.8
 sqlparse==0.5.5
 typing_extensions==4.15.0
 tzdata==2026.1
+Pillow==10.3.0

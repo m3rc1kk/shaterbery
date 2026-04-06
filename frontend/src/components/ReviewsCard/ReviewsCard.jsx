@@ -11,8 +11,6 @@ function clampStars(value) {
 
 export default function ReviewsCard({
     id,
-    avatar,
-    avatarAlt = '',
     username,
     date,
     stars = 5,
@@ -65,14 +63,6 @@ export default function ReviewsCard({
         <div className="reviews-card">
             <div className="reviews-card__inner">
                 <header className="reviews-card__author">
-                    <img
-                        src={avatar}
-                        width={36}
-                        height={36}
-                        loading="lazy"
-                        alt={avatarAlt || `Аватар: ${username}`}
-                        className="reviews-card__author-avatar"
-                    />
                     <div className="reviews-card__author-body">
                         <span className="reviews-card__author-username">
                             {username}

@@ -43,6 +43,7 @@ export default function AdminApplicationFormBody({
     const furniture = d.furniture_qty ?? d.furniture ?? 0;
     const chairs = d.chairs_qty ?? d.chairs ?? 0;
     const bulb = d.bulb_qty ?? d.bulb ?? 0;
+    const daysDefault = d.rental_days ?? d.days ?? 1;
     const delivery = d.delivery ?? true;
     const assembly = d.assembly ?? false;
     const source = d.source ?? 'site';
@@ -57,6 +58,7 @@ export default function AdminApplicationFormBody({
         chairs: Number(chairs) || 0,
         bulb: Number(bulb) || 0,
     });
+    const [liveDays, setLiveDays] = useState(Number(daysDefault) || 1);
     const [liveDelivery, setLiveDelivery] = useState(Boolean(delivery));
 
     const handleQtyChange = useCallback((fieldName, value) => {
@@ -64,11 +66,12 @@ export default function AdminApplicationFormBody({
     }, []);
 
     const totalPrice = useMemo(() => {
-        return Object.entries(qty).reduce(
+        const base = Object.entries(qty).reduce(
             (sum, [key, count]) => sum + count * (PRICES[key] ?? 0),
             0,
         );
-    }, [qty]);
+        return base * liveDays;
+    }, [qty, liveDays]);
 
     const statusFieldClass =
         liveStatus === 'new'
@@ -131,6 +134,17 @@ export default function AdminApplicationFormBody({
                 required
                 disabled={disabled}
                 defaultValue={place}
+            />
+
+            <QuantityInput
+                id={`${idPrefix}-days`}
+                name="days"
+                label="Количество суток"
+                min={1}
+                max={30}
+                disabled={disabled}
+                defaultValue={daysDefault}
+                onValueChange={setLiveDays}
             />
 
             <div className="new-applications__form-tent">

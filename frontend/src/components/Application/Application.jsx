@@ -39,6 +39,7 @@ export default function Application() {
         chairs: 0,
         bulb: 0,
     });
+    const [days, setDays] = useState(1);
     const [delivery, setDelivery] = useState(true);
 
     const handleQtyChange = useCallback((name, value) => {
@@ -46,11 +47,12 @@ export default function Application() {
     }, []);
 
     const totalPrice = useMemo(() => {
-        return Object.entries(qty).reduce(
+        const base = Object.entries(qty).reduce(
             (sum, [key, count]) => sum + count * (PRICES[key] ?? 0),
             0,
         );
-    }, [qty]);
+        return base * days;
+    }, [qty, days]);
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -66,6 +68,7 @@ export default function Application() {
             form.reset();
             setFieldsKey((k) => k + 1);
             setQty({ tent3x6: 0, tent3x3: 0, furniture: 0, chairs: 0, bulb: 0 });
+            setDays(1);
             setDelivery(true);
         } catch (err) {
             const text = err instanceof ApiError ? err.message : 'Не удалось отправить заявку';
@@ -172,6 +175,16 @@ export default function Application() {
                             placeholder="Адрес"
                             required
                             disabled={pending}
+                        />
+
+                        <QuantityInput
+                            id="days"
+                            name="days"
+                            label="Количество суток"
+                            min={1}
+                            max={30}
+                            disabled={pending}
+                            onValueChange={setDays}
                         />
 
                         <div className="application__form-tent">

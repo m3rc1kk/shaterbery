@@ -54,9 +54,9 @@ export default function Header() {
 
                     <div className="header__rating">
                         <span className="header__rating-title">
-                            Рейтинг:
+                            Город:
                         </span>
-                        <span className="header__rating-value">5.0</span>
+                        <span className="header__rating-value">Орёл</span>
                     </div>
                 </div>
             </header>
