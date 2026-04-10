@@ -19,12 +19,47 @@ import { ApiError } from '../../api/http.js';
 import { formatMoneyRub } from '../../utils/format.js';
 
 const PRICES = {
-    tent3x6: 2000,
-    tent3x3: 1500,
-    furniture: 500,
-    chairs: 200,
+    tent3x6: 3000,
+    tent3x3: 2000,
+    furniture: 3000,
+    chairs: 150,
     bulb: 100,
 };
+
+const PER_DAY_KEYS = ['tent3x6', 'tent3x3', 'furniture'];
+
+const ASSEMBLY = {
+    tent3x6: 2000,
+    tent3x3: 1000,
+};
+
+function calcTotal(qty, days, assembly) {
+    const d = Math.max(1, days);
+    const mult = 1 + 0.5 * (d - 1);
+
+    let perDay = 0;
+    let perPiece = 0;
+    for (const [key, count] of Object.entries(qty)) {
+        if (PER_DAY_KEYS.includes(key)) {
+            perDay += count * (PRICES[key] ?? 0);
+        } else {
+            perPiece += count * (PRICES[key] ?? 0);
+        }
+    }
+
+    const rental = Math.round(perDay * mult + perPiece);
+
+    let tentAssembly = 0;
+    if (assembly) {
+        tentAssembly += (qty.tent3x6 || 0) * ASSEMBLY.tent3x6;
+        tentAssembly += (qty.tent3x3 || 0) * ASSEMBLY.tent3x3;
+    }
+
+    const furnitureAssembly = (qty.furniture || 0) >= 2 ? 500 : 0;
+
+    const assemblyCost = tentAssembly + furnitureAssembly;
+    return { rental, tentAssembly, furnitureAssembly, assembly: assemblyCost, total: rental + assemblyCost };
+}
 
 export default function Application() {
     const [message, setMessage] = useState('');
@@ -41,18 +76,14 @@ export default function Application() {
     });
     const [days, setDays] = useState(1);
     const [delivery, setDelivery] = useState(true);
+    const [assembly, setAssembly] = useState(false);
 
     const handleQtyChange = useCallback((name, value) => {
         setQty((prev) => ({ ...prev, [name]: value }));
     }, []);
 
-    const totalPrice = useMemo(() => {
-        const base = Object.entries(qty).reduce(
-            (sum, [key, count]) => sum + count * (PRICES[key] ?? 0),
-            0,
-        );
-        return base * days;
-    }, [qty, days]);
+    const priceBreakdown = useMemo(() => calcTotal(qty, days, assembly), [qty, days, assembly]);
+    const { rental: rentalCost, tentAssembly, furnitureAssembly, assembly: assemblyCost, total: totalPrice } = priceBreakdown;
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -70,6 +101,7 @@ export default function Application() {
             setQty({ tent3x6: 0, tent3x3: 0, furniture: 0, chairs: 0, bulb: 0 });
             setDays(1);
             setDelivery(true);
+            setAssembly(false);
         } catch (err) {
             const text = err instanceof ApiError ? err.message : 'Не удалось отправить заявку';
             setError(text);
@@ -191,7 +223,7 @@ export default function Application() {
                             <QuantityInput
                                 id="tent3x6"
                                 name="tent3x6"
-                                label="Шатёр 3×6м - 2.000 ₽/сут"
+                                label="Шатёр 3×6м — 3.000₽/сут"
                                 className="field__input--half"
                                 disabled={pending}
                                 onValueChange={(v) => handleQtyChange('tent3x6', v)}
@@ -200,7 +232,7 @@ export default function Application() {
                             <QuantityInput
                                 id="tent3x3"
                                 name="tent3x3"
-                                label="Шатёр 3×3м - 1.500₽/сут"
+                                label="Шатёр 3×3м — 2.000₽/сут"
                                 className="field__input--half"
                                 disabled={pending}
                                 onValueChange={(v) => handleQtyChange('tent3x3', v)}
@@ -211,7 +243,7 @@ export default function Application() {
                             <QuantityInput
                                 id="furniture"
                                 name="furniture"
-                                label="Комплект мебели - 500₽/сут"
+                                label="Комплект мебели — 3.000₽/сут"
                                 className="field__input--third"
                                 disabled={pending}
                                 onValueChange={(v) => handleQtyChange('furniture', v)}
@@ -220,7 +252,7 @@ export default function Application() {
                             <QuantityInput
                                 id="chairs"
                                 name="chairs"
-                                label="Стул раскладной - 200₽/шт"
+                                label="Стул раскладной — 150₽/шт"
                                 className="field__input--third"
                                 disabled={pending}
                                 onValueChange={(v) => handleQtyChange('chairs', v)}
@@ -229,7 +261,7 @@ export default function Application() {
                             <QuantityInput
                                 id="bulb"
                                 name="bulb"
-                                label="Лампочка - 100₽/шт"
+                                label="Лампочка — 100₽/шт"
                                 className="field__input--third"
                                 disabled={pending}
                                 onValueChange={(v) => handleQtyChange('bulb', v)}
@@ -254,12 +286,39 @@ export default function Application() {
                                 iconNo={boxIcon}
                                 className="field__input--half"
                                 disabled={pending}
+                                onToggle={setAssembly}
                             />
                         </div>
                         </div>
 
                         {totalPrice > 0 ? (
                             <div className="application__form-total">
+                                {assemblyCost > 0 ? (
+                                    <>
+                                        <div className="application__form-total-row">
+                                            <span className="application__form-total-label">Аренда:</span>
+                                            <span className="application__form-total-value application__form-total-value--secondary">
+                                                {formatMoneyRub(rentalCost)}
+                                            </span>
+                                        </div>
+                                        {tentAssembly > 0 ? (
+                                            <div className="application__form-total-row">
+                                                <span className="application__form-total-label">Сборка шатров:</span>
+                                                <span className="application__form-total-value application__form-total-value--secondary">
+                                                    {formatMoneyRub(tentAssembly)}
+                                                </span>
+                                            </div>
+                                        ) : null}
+                                        {furnitureAssembly > 0 ? (
+                                            <div className="application__form-total-row">
+                                                <span className="application__form-total-label">Установка мебели:</span>
+                                                <span className="application__form-total-value application__form-total-value--secondary">
+                                                    {formatMoneyRub(furnitureAssembly)}
+                                                </span>
+                                            </div>
+                                        ) : null}
+                                    </>
+                                ) : null}
                                 <div className="application__form-total-row">
                                     <span className="application__form-total-label">Итого:</span>
                                     <span className="application__form-total-value">
@@ -269,6 +328,11 @@ export default function Application() {
                                 {delivery ? (
                                     <span className="application__form-total-hint">
                                         * без учёта доставки
+                                    </span>
+                                ) : null}
+                                {days > 1 ? (
+                                    <span className="application__form-total-hint">
+                                        * следующие сутки аренды со скидкой 50%
                                     </span>
                                 ) : null}
                             </div>

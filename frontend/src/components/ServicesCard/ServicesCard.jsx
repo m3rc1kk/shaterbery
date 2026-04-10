@@ -25,8 +25,6 @@ export default function ServicesCard({
     image,
     imageAlt = '',
     title,
-    icon,
-    iconAlt = '',
     description,
     price,
     pricePostscript,
@@ -49,14 +47,6 @@ export default function ServicesCard({
 
                 <div className="services-card__body">
                     <header className="services-card__header">
-                        <img
-                            src={icon}
-                            alt={iconAlt}
-                            width={18}
-                            height={18}
-                            loading="lazy"
-                            className="services-card__header-icon"
-                        />
                         <h2 className="services-card__title">{title}</h2>
                     </header>
 

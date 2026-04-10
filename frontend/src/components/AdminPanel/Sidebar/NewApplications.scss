@@ -161,6 +161,12 @@
         font-weight: 700;
         font-size: 20px;
         color: var(--color-accent, #3392ff);
+
+        &--secondary {
+          font-size: 15px;
+          font-weight: 500;
+          opacity: 0.6;
+        }
       }
 
       &-hint {

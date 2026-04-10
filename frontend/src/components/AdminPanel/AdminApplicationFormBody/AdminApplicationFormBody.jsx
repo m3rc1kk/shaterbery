@@ -11,21 +11,48 @@ import boxActiveIcon from '../../../assets/images/application/box-active.svg';
 import { stripSecondsTime, formatMoneyRub } from '../../../utils/format.js';
 
 const PRICES = {
-    tent3x6: 2000,
-    tent3x3: 1500,
-    furniture: 500,
-    chairs: 200,
+    tent3x6: 3000,
+    tent3x3: 2000,
+    furniture: 3000,
+    chairs: 150,
     bulb: 100,
 };
 
-/**
- * 
- * @param {object} props
- * @param {string} props.idPrefix 
- * @param {boolean} props.disabled
- * @param {object|null} props.defaults
- * @param {boolean} props.showAdminMeta
- */
+const PER_DAY_KEYS = ['tent3x6', 'tent3x3', 'furniture'];
+
+const ASSEMBLY = {
+    tent3x6: 2000,
+    tent3x3: 1000,
+};
+
+function calcTotal(qty, days, assembly) {
+    const d = Math.max(1, days);
+    const mult = 1 + 0.5 * (d - 1);
+
+    let perDay = 0;
+    let perPiece = 0;
+    for (const [key, count] of Object.entries(qty)) {
+        if (PER_DAY_KEYS.includes(key)) {
+            perDay += count * (PRICES[key] ?? 0);
+        } else {
+            perPiece += count * (PRICES[key] ?? 0);
+        }
+    }
+
+    const rental = Math.round(perDay * mult + perPiece);
+
+    let tentAssembly = 0;
+    if (assembly) {
+        tentAssembly += (qty.tent3x6 || 0) * ASSEMBLY.tent3x6;
+        tentAssembly += (qty.tent3x3 || 0) * ASSEMBLY.tent3x3;
+    }
+
+    const furnitureAssembly = (qty.furniture || 0) >= 2 ? 500 : 0;
+
+    const assemblyCost = tentAssembly + furnitureAssembly;
+    return { rental, tentAssembly, furnitureAssembly, assembly: assemblyCost, total: rental + assemblyCost };
+}
+
 export default function AdminApplicationFormBody({
     idPrefix,
     disabled,
@@ -45,7 +72,7 @@ export default function AdminApplicationFormBody({
     const bulb = d.bulb_qty ?? d.bulb ?? 0;
     const daysDefault = d.rental_days ?? d.days ?? 1;
     const delivery = d.delivery ?? true;
-    const assembly = d.assembly ?? false;
+    const assemblyDefault = d.assembly ?? false;
     const source = d.source ?? 'site';
     const status = d.status ?? 'new';
 
@@ -60,18 +87,17 @@ export default function AdminApplicationFormBody({
     });
     const [liveDays, setLiveDays] = useState(Number(daysDefault) || 1);
     const [liveDelivery, setLiveDelivery] = useState(Boolean(delivery));
+    const [liveAssembly, setLiveAssembly] = useState(Boolean(assemblyDefault));
 
     const handleQtyChange = useCallback((fieldName, value) => {
         setQty((prev) => ({ ...prev, [fieldName]: value }));
     }, []);
 
-    const totalPrice = useMemo(() => {
-        const base = Object.entries(qty).reduce(
-            (sum, [key, count]) => sum + count * (PRICES[key] ?? 0),
-            0,
-        );
-        return base * liveDays;
-    }, [qty, liveDays]);
+    const priceBreakdown = useMemo(
+        () => calcTotal(qty, liveDays, liveAssembly),
+        [qty, liveDays, liveAssembly],
+    );
+    const { rental: rentalCost, tentAssembly, furnitureAssembly, assembly: assemblyCost, total: totalPrice } = priceBreakdown;
 
     const statusFieldClass =
         liveStatus === 'new'
@@ -151,7 +177,7 @@ export default function AdminApplicationFormBody({
                 <QuantityInput
                     id={`${idPrefix}-tent3x6`}
                     name="tent3x6"
-                    label="Шатёр 3×6м - 2.000 ₽/сут"
+                    label="Шатёр 3×6м — 3.000₽/сут"
                     className="field__input--half"
                     disabled={disabled}
                     defaultValue={tent3x6}
@@ -161,7 +187,7 @@ export default function AdminApplicationFormBody({
                 <QuantityInput
                     id={`${idPrefix}-tent3x3`}
                     name="tent3x3"
-                    label="Шатёр 3×3м - 1.500₽/сут"
+                    label="Шатёр 3×3м — 2.000₽/сут"
                     className="field__input--half"
                     disabled={disabled}
                     defaultValue={tent3x3}
@@ -173,7 +199,7 @@ export default function AdminApplicationFormBody({
                 <QuantityInput
                     id={`${idPrefix}-furniture`}
                     name="furniture"
-                    label="Комплект мебели - 500₽/сут"
+                    label="Комплект мебели — 3.000₽/сут"
                     className="field__input--third"
                     disabled={disabled}
                     defaultValue={furniture}
@@ -183,7 +209,7 @@ export default function AdminApplicationFormBody({
                 <QuantityInput
                     id={`${idPrefix}-chairs`}
                     name="chairs"
-                    label="Стул раскладной - 200₽/шт"
+                    label="Стул раскладной — 150₽/шт"
                     className="field__input--third"
                     disabled={disabled}
                     defaultValue={chairs}
@@ -193,7 +219,7 @@ export default function AdminApplicationFormBody({
                 <QuantityInput
                     id={`${idPrefix}-bulb`}
                     name="bulb"
-                    label="Лампочка - 100₽/шт"
+                    label="Лампочка — 100₽/шт"
                     className="field__input--third"
                     disabled={disabled}
                     defaultValue={bulb}
@@ -217,14 +243,41 @@ export default function AdminApplicationFormBody({
                     name="assembly"
                     iconYes={boxActiveIcon}
                     iconNo={boxIcon}
-                    defaultYes={Boolean(assembly)}
+                    defaultYes={Boolean(assemblyDefault)}
                     className="field__input--half"
                     disabled={disabled}
+                    onToggle={setLiveAssembly}
                 />
             </div>
 
             {totalPrice > 0 ? (
                 <div className="new-applications__form-total">
+                    {assemblyCost > 0 ? (
+                        <>
+                            <div className="new-applications__form-total-row">
+                                <span className="new-applications__form-total-label">Аренда:</span>
+                                <span className="new-applications__form-total-value new-applications__form-total-value--secondary">
+                                    {formatMoneyRub(rentalCost)}
+                                </span>
+                            </div>
+                            {tentAssembly > 0 ? (
+                                <div className="new-applications__form-total-row">
+                                    <span className="new-applications__form-total-label">Сборка шатров:</span>
+                                    <span className="new-applications__form-total-value new-applications__form-total-value--secondary">
+                                        {formatMoneyRub(tentAssembly)}
+                                    </span>
+                                </div>
+                            ) : null}
+                            {furnitureAssembly > 0 ? (
+                                <div className="new-applications__form-total-row">
+                                    <span className="new-applications__form-total-label">Установка мебели:</span>
+                                    <span className="new-applications__form-total-value new-applications__form-total-value--secondary">
+                                        {formatMoneyRub(furnitureAssembly)}
+                                    </span>
+                                </div>
+                            ) : null}
+                        </>
+                    ) : null}
                     <div className="new-applications__form-total-row">
                         <span className="new-applications__form-total-label">Итого:</span>
                         <span className="new-applications__form-total-value">
@@ -234,6 +287,11 @@ export default function AdminApplicationFormBody({
                     {liveDelivery ? (
                         <span className="new-applications__form-total-hint">
                             * без учёта доставки
+                        </span>
+                    ) : null}
+                    {liveDays > 1 ? (
+                        <span className="new-applications__form-total-hint">
+                            * следующие сутки аренды со скидкой 50%
                         </span>
                     ) : null}
                 </div>

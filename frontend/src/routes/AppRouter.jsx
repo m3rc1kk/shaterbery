@@ -3,6 +3,7 @@ import Main from '../pages/Main/Main.jsx';
 import SignIn from '../pages/AdminPanel/SignIn/SignIn.jsx';
 import Dashboard from '../pages/AdminPanel/Dashboard/Dashboard.jsx';
 import Applications from '../pages/AdminPanel/Applications/Applications.jsx';
+import AdminServices from '../pages/AdminPanel/AdminServices/AdminServices.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 
 export default function AppRouter() {
@@ -23,6 +24,14 @@ export default function AppRouter() {
                 element={
                     <ProtectedRoute>
                         <Applications />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/admin/services"
+                element={
+                    <ProtectedRoute>
+                        <AdminServices />
                     </ProtectedRoute>
                 }
             />

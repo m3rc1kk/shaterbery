@@ -3,6 +3,8 @@ import dashboardIcon from '../../../assets/images/admin-panel/sidebar/dashboard.
 import dashboardActiveIcon from '../../../assets/images/admin-panel/sidebar/dashboard-active.svg'
 import applicationIcon from '../../../assets/images/admin-panel/sidebar/application.svg'
 import applicationActiveIcon from '../../../assets/images/admin-panel/sidebar/application-active.svg'
+import servicesIcon from '../../../assets/images/admin-panel/sidebar/services.svg'
+import servicesActiveIcon from '../../../assets/images/admin-panel/sidebar/services-active.svg'
 import logoutIcon from '../../../assets/images/admin-panel/sidebar/log-out.svg'
 import logoIcon from '../../../assets/images/Logo.svg'
 import closeButton from "../../../assets/images/admin-panel/sidebar/x.svg";
@@ -22,6 +24,19 @@ function adminShortName(user) {
     return user.username || 'Админ';
 }
 
+const PAGE_TITLES = {
+    '/admin/dashboard': 'Дашборд',
+    '/admin/applications': 'Заявки',
+    '/admin/services': 'Товары',
+};
+
+function getPageTitle(pathname) {
+    for (const [prefix, title] of Object.entries(PAGE_TITLES)) {
+        if (pathname.startsWith(prefix)) return title;
+    }
+    return 'Дашборд';
+}
+
 export default function Sidebar() {
     const dialogRef = useRef(null);
     const newApplicationDialogRef = useRef(null);
@@ -38,7 +53,8 @@ export default function Sidebar() {
     const profileName = adminShortName(user);
     const isApplicationsPage = pathname.startsWith('/admin/applications');
     const isDashboardPage = pathname.startsWith('/admin/dashboard');
-    const pageTitle = isApplicationsPage ? 'Заявки' : 'Дашборд';
+    const isServicesPage = pathname.startsWith('/admin/services');
+    const pageTitle = getPageTitle(pathname);
 
     const openMenu = () => {
         if (closeTimeoutRef.current) {
@@ -126,6 +142,12 @@ export default function Sidebar() {
         };
     }, []);
 
+    const navItems = [
+        { to: '/admin/dashboard', label: 'Дашборд', icon: dashboardIcon, activeIcon: dashboardActiveIcon, active: isDashboardPage },
+        { to: '/admin/applications', label: 'Заявки', icon: applicationIcon, activeIcon: applicationActiveIcon, active: isApplicationsPage },
+        { to: '/admin/services', label: 'Товары', icon: servicesIcon, activeIcon: servicesActiveIcon, active: isServicesPage },
+    ];
+
     return (
         <>
             <aside className="sidebar">
@@ -156,38 +178,24 @@ export default function Sidebar() {
                             <h3 className="sidebar__nav-title">Навигация</h3>
 
                             <ul className="sidebar__nav-list">
-                                <li className="sidebar__nav-item">
-                                    <ButtonLink
-                                        to={'/admin/dashboard'}
-                                        className={`sidebar__nav-link ${isDashboardPage ? 'sidebar__nav-link--active' : ''}`}
-                                    >
-                                        <img
-                                            src={isDashboardPage ? dashboardActiveIcon : dashboardIcon}
-                                            width={16}
-                                            height={16}
-                                            loading='lazy'
-                                            alt="Дашборд"
-                                            className="sidebar__nav-icon"
-                                        />
-                                        <span className="sidebar__nav-text">Дашборд</span>
-                                    </ButtonLink>
-                                </li>
-                                <li className="sidebar__nav-item">
-                                    <ButtonLink
-                                        to={'/admin/applications'}
-                                        className={`sidebar__nav-link ${isApplicationsPage ? 'sidebar__nav-link--active' : ''}`}
-                                    >
-                                        <img
-                                            src={isApplicationsPage ? applicationActiveIcon : applicationIcon}
-                                            width={16}
-                                            height={16}
-                                            loading='lazy'
-                                            alt="Заявки"
-                                            className="sidebar__nav-icon"
-                                        />
-                                        <span className="sidebar__nav-text">Заявки</span>
-                                    </ButtonLink>
-                                </li>
+                                {navItems.map((item) => (
+                                    <li key={item.to} className="sidebar__nav-item">
+                                        <ButtonLink
+                                            to={item.to}
+                                            className={`sidebar__nav-link ${item.active ? 'sidebar__nav-link--active' : ''}`}
+                                        >
+                                            <img
+                                                src={item.active ? item.activeIcon : item.icon}
+                                                width={16}
+                                                height={16}
+                                                loading='lazy'
+                                                alt={item.label}
+                                                className="sidebar__nav-icon"
+                                            />
+                                            <span className="sidebar__nav-text">{item.label}</span>
+                                        </ButtonLink>
+                                    </li>
+                                ))}
                             </ul>
                         </nav>
 
@@ -230,40 +238,25 @@ export default function Sidebar() {
                         <h3 className="sidebar__nav-title">Навигация</h3>
 
                         <ul className="sidebar__nav-list">
-                            <li className="sidebar__nav-item">
-                                <ButtonLink
-                                    to={'/admin/dashboard'}
-                                    className={`sidebar__nav-link ${isDashboardPage ? 'sidebar__nav-link--active' : ''}`}
-                                    onClick={closeMenu}
-                                >
-                                    <img
-                                        src={isDashboardPage ? dashboardActiveIcon : dashboardIcon}
-                                        width={16}
-                                        height={16}
-                                        loading='lazy'
-                                        alt="Дашборд"
-                                        className="sidebar__nav-icon"
-                                    />
-                                    <span className="sidebar__nav-text">Дашборд</span>
-                                </ButtonLink>
-                            </li>
-                            <li className="sidebar__nav-item">
-                                <ButtonLink
-                                    to={'/admin/applications'}
-                                    className={`sidebar__nav-link ${isApplicationsPage ? 'sidebar__nav-link--active' : ''}`}
-                                    onClick={closeMenu}
-                                >
-                                    <img
-                                        src={isApplicationsPage ? applicationActiveIcon : applicationIcon}
-                                        width={16}
-                                        height={16}
-                                        loading='lazy'
-                                        alt="Заявки"
-                                        className="sidebar__nav-icon"
-                                    />
-                                    <span className="sidebar__nav-text">Заявки</span>
-                                </ButtonLink>
-                            </li>
+                            {navItems.map((item) => (
+                                <li key={item.to} className="sidebar__nav-item">
+                                    <ButtonLink
+                                        to={item.to}
+                                        className={`sidebar__nav-link ${item.active ? 'sidebar__nav-link--active' : ''}`}
+                                        onClick={closeMenu}
+                                    >
+                                        <img
+                                            src={item.active ? item.activeIcon : item.icon}
+                                            width={16}
+                                            height={16}
+                                            loading='lazy'
+                                            alt={item.label}
+                                            className="sidebar__nav-icon"
+                                        />
+                                        <span className="sidebar__nav-text">{item.label}</span>
+                                    </ButtonLink>
+                                </li>
+                            ))}
                         </ul>
                     </nav>
 

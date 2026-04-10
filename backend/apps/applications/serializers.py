@@ -24,6 +24,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
             'furniture_qty',
             'chairs_qty',
             'bulb_qty',
+            'rental_days',
             'delivery',
             'assembly',
             'source',
@@ -42,6 +43,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
             'furniture_qty': {'min_value': 0, 'max_value': MAX_LINE_QTY},
             'chairs_qty': {'min_value': 0, 'max_value': MAX_LINE_QTY},
             'bulb_qty': {'min_value': 0, 'max_value': MAX_LINE_QTY},
+            'rental_days': {'min_value': 1, 'max_value': 30},
             'total_price': {'required': False, 'min_value': 0},
         }
 
@@ -68,6 +70,7 @@ class ApplicationSubmitSerializer(serializers.Serializer):
     furniture = serializers.IntegerField(min_value=0, max_value=MAX_LINE_QTY, default=0)
     chairs = serializers.IntegerField(min_value=0, max_value=MAX_LINE_QTY, default=0)
     bulb = serializers.IntegerField(min_value=0, max_value=MAX_LINE_QTY, default=0)
+    days = serializers.IntegerField(min_value=1, max_value=30, default=1)
     delivery = serializers.BooleanField()
     assembly = serializers.BooleanField()
 
@@ -83,6 +86,7 @@ class ApplicationSubmitSerializer(serializers.Serializer):
             furniture_qty=validated_data['furniture'],
             chairs_qty=validated_data['chairs'],
             bulb_qty=validated_data['bulb'],
+            rental_days=validated_data['days'],
             delivery=validated_data['delivery'],
             assembly=validated_data['assembly'],
             source=Application.Source.SITE,

@@ -11,8 +11,9 @@ class ServiceSerializer(serializers.ModelSerializer):
             'title',
             'description',
             'image',
-            'price',
-            'price_postscript',
+            'price_value',
+            'price_unit',
+            'assembly_price',
             'sort_order',
             'created_at',
         ]
