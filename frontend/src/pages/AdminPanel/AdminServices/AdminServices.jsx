@@ -21,7 +21,6 @@ function formatPriceDisplay(val) {
     return n.toLocaleString('ru-RU');
 }
 
-const UNIT_LABELS = { day: '/сутки', piece: '/шт' };
 
 export default function AdminServices() {
     const navigate = useNavigate();
@@ -198,7 +197,7 @@ export default function AdminServices() {
                                         <span className="admin-services__card-price">
                                             {formatPriceDisplay(item.price_value)}₽
                                             <span className="admin-services__card-price-unit">
-                                                {UNIT_LABELS[item.price_unit] || ''}
+                                                /сутки
                                             </span>
                                         </span>
                                         {item.assembly_price > 0 ? (
@@ -268,16 +267,8 @@ export default function AdminServices() {
                                 disabled={createPending}
                             />
                         </div>
-                        <div className="new-applications__form-contact">
-                            <Input id="svc-create-price" name="price_value" label="Цена" type="number" placeholder="3000" className="field__input--half" required disabled={createPending} />
-                            <div className="field field__input--half">
-                                <label htmlFor="svc-create-unit" className="field__label">Единица</label>
-                                <select id="svc-create-unit" name="price_unit" className="field__input" defaultValue="day" disabled={createPending}>
-                                    <option value="day">Сутки</option>
-                                    <option value="piece">Штука</option>
-                                </select>
-                            </div>
-                        </div>
+                        <Input id="svc-create-price" name="price_value" label="Цена (в сутки)" type="number" placeholder="3000" required disabled={createPending} />
+                        <input type="hidden" name="price_unit" value="day" />
                         <div className="new-applications__form-contact">
                             <Input id="svc-create-assembly" name="assembly_price" label="Цена сборки" type="number" placeholder="0" className="field__input--half" disabled={createPending} defaultValue="0" />
                             <Input id="svc-create-sort" name="sort_order" label="Порядок" type="number" placeholder="0" className="field__input--half" disabled={createPending} defaultValue="0" />
@@ -342,16 +333,8 @@ export default function AdminServices() {
                                 <label htmlFor="svc-edit-image" className="field__label">Заменить картинку</label>
                                 <input type="file" id="svc-edit-image" name="image" accept="image/*" className="field__input" disabled={editPending} />
                             </div>
-                            <div className="new-applications__form-contact">
-                                <Input id="svc-edit-price" name="price_value" label="Цена" type="number" defaultValue={editItem.price_value} className="field__input--half" required disabled={editPending} />
-                                <div className="field field__input--half">
-                                    <label htmlFor="svc-edit-unit" className="field__label">Единица</label>
-                                    <select id="svc-edit-unit" name="price_unit" className="field__input" defaultValue={editItem.price_unit} disabled={editPending}>
-                                        <option value="day">Сутки</option>
-                                        <option value="piece">Штука</option>
-                                    </select>
-                                </div>
-                            </div>
+                            <Input id="svc-edit-price" name="price_value" label="Цена (в сутки)" type="number" defaultValue={editItem.price_value} required disabled={editPending} />
+                            <input type="hidden" name="price_unit" value="day" />
                             <div className="new-applications__form-contact">
                                 <Input id="svc-edit-assembly" name="assembly_price" label="Цена сборки" type="number" defaultValue={editItem.assembly_price} className="field__input--half" disabled={editPending} />
                                 <Input id="svc-edit-sort" name="sort_order" label="Порядок" type="number" defaultValue={editItem.sort_order} className="field__input--half" disabled={editPending} />
