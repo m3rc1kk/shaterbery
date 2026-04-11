@@ -14,6 +14,7 @@ class ServiceSerializer(serializers.ModelSerializer):
             'price_value',
             'price_unit',
             'assembly_price',
+            'half_price_next_days',
             'sort_order',
             'created_at',
         ]

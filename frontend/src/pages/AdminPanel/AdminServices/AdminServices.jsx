@@ -78,6 +78,8 @@ export default function AdminServices() {
         e.preventDefault();
         const form = e.currentTarget;
         const fd = new FormData(form);
+        const checkbox = form.querySelector('#svc-create-discount');
+        fd.set('half_price_next_days', checkbox?.checked ? 'true' : 'false');
         setCreateError('');
         setCreatePending(true);
         try {
@@ -112,6 +114,8 @@ export default function AdminServices() {
         if (fileInput && fileInput.files.length === 0) {
             fd.delete('image');
         }
+        const checkbox = form.querySelector('#svc-edit-discount');
+        fd.set('half_price_next_days', checkbox?.checked ? 'true' : 'false');
         setEditError('');
         setEditPending(true);
         try {
@@ -157,14 +161,13 @@ export default function AdminServices() {
             <div className="admin-services">
                 <div className="admin-services__inner">
                     <div className="admin-services__header">
-                        <h2 className="admin-services__page-title">Товары</h2>
-                        <ButtonLink
+                        <button
                             type="button"
-                            className="button__main admin-services__add-btn"
+                            className="admin-services__add-btn"
                             onClick={openCreate}
                         >
                             + Добавить товар
-                        </ButtonLink>
+                        </button>
                     </div>
 
                     {listError ? (
@@ -201,6 +204,11 @@ export default function AdminServices() {
                                         {item.assembly_price > 0 ? (
                                             <span className="admin-services__card-assembly">
                                                 Сборка: {formatPriceDisplay(item.assembly_price)}₽
+                                            </span>
+                                        ) : null}
+                                        {item.half_price_next_days ? (
+                                            <span className="admin-services__card-discount">
+                                                Скидка 50% на след. сутки
                                             </span>
                                         ) : null}
                                     </div>
@@ -264,7 +272,7 @@ export default function AdminServices() {
                             <Input id="svc-create-price" name="price_value" label="Цена" type="number" placeholder="3000" className="field__input--half" required disabled={createPending} />
                             <div className="field field__input--half">
                                 <label htmlFor="svc-create-unit" className="field__label">Единица</label>
-                                <select id="svc-create-unit" name="price_unit" className="field__input new-applications__source-select" defaultValue="day" disabled={createPending}>
+                                <select id="svc-create-unit" name="price_unit" className="field__input" defaultValue="day" disabled={createPending}>
                                     <option value="day">Сутки</option>
                                     <option value="piece">Штука</option>
                                 </select>
@@ -274,6 +282,16 @@ export default function AdminServices() {
                             <Input id="svc-create-assembly" name="assembly_price" label="Цена сборки" type="number" placeholder="0" className="field__input--half" disabled={createPending} defaultValue="0" />
                             <Input id="svc-create-sort" name="sort_order" label="Порядок" type="number" placeholder="0" className="field__input--half" disabled={createPending} defaultValue="0" />
                         </div>
+
+                        <label className="admin-services__checkbox-field">
+                            <input
+                                type="checkbox"
+                                id="svc-create-discount"
+                                className="admin-services__checkbox-input"
+                                disabled={createPending}
+                            />
+                            <span className="admin-services__checkbox-label">Скидка 50% на каждые следующие сутки</span>
+                        </label>
 
                         {createError ? (
                             <p className="new-applications__error" role="alert">{createError}</p>
@@ -328,7 +346,7 @@ export default function AdminServices() {
                                 <Input id="svc-edit-price" name="price_value" label="Цена" type="number" defaultValue={editItem.price_value} className="field__input--half" required disabled={editPending} />
                                 <div className="field field__input--half">
                                     <label htmlFor="svc-edit-unit" className="field__label">Единица</label>
-                                    <select id="svc-edit-unit" name="price_unit" className="field__input new-applications__source-select" defaultValue={editItem.price_unit} disabled={editPending}>
+                                    <select id="svc-edit-unit" name="price_unit" className="field__input" defaultValue={editItem.price_unit} disabled={editPending}>
                                         <option value="day">Сутки</option>
                                         <option value="piece">Штука</option>
                                     </select>
@@ -338,6 +356,17 @@ export default function AdminServices() {
                                 <Input id="svc-edit-assembly" name="assembly_price" label="Цена сборки" type="number" defaultValue={editItem.assembly_price} className="field__input--half" disabled={editPending} />
                                 <Input id="svc-edit-sort" name="sort_order" label="Порядок" type="number" defaultValue={editItem.sort_order} className="field__input--half" disabled={editPending} />
                             </div>
+
+                            <label className="admin-services__checkbox-field">
+                                <input
+                                    type="checkbox"
+                                    id="svc-edit-discount"
+                                    className="admin-services__checkbox-input"
+                                    defaultChecked={editItem.half_price_next_days}
+                                    disabled={editPending}
+                                />
+                                <span className="admin-services__checkbox-label">Скидка 50% на каждые следующие сутки</span>
+                            </label>
 
                             {editError ? (
                                 <p className="new-applications__error" role="alert">{editError}</p>

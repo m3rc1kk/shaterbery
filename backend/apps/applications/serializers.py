@@ -1,14 +1,40 @@
 from rest_framework import serializers
 
-from .models import Application
+from .models import Application, ApplicationItem
+from apps.services.models import Service
 
 MAX_LOCATION_LENGTH = 4096
 MAX_LINE_QTY = 999
 
 
+class ApplicationItemSerializer(serializers.ModelSerializer):
+    service_id = serializers.IntegerField(source='service.id', read_only=True, default=None)
+
+    class Meta:
+        model = ApplicationItem
+        fields = [
+            'id',
+            'service_id',
+            'title',
+            'quantity',
+            'unit_price',
+            'price_unit',
+            'assembly_price',
+            'half_price_next_days',
+        ]
+        read_only_fields = ['id']
+
+
+class SubmitItemSerializer(serializers.Serializer):
+    service_id = serializers.IntegerField()
+    quantity = serializers.IntegerField(min_value=0, max_value=MAX_LINE_QTY, default=0)
+
+
 class ApplicationSerializer(serializers.ModelSerializer):
     goods_lines = serializers.SerializerMethodField(read_only=True)
     composition_summary = serializers.SerializerMethodField(read_only=True)
+    items = ApplicationItemSerializer(many=True, read_only=True)
+    items_input = SubmitItemSerializer(many=True, required=False, write_only=True)
 
     class Meta:
         model = Application
@@ -32,10 +58,12 @@ class ApplicationSerializer(serializers.ModelSerializer):
             'total_price',
             'goods_lines',
             'composition_summary',
+            'items',
+            'items_input',
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'goods_lines', 'composition_summary', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'goods_lines', 'composition_summary', 'items', 'created_at', 'updated_at']
         extra_kwargs = {
             'location': {'max_length': MAX_LOCATION_LENGTH},
             'tent_3x6_qty': {'min_value': 0, 'max_value': MAX_LINE_QTY},
@@ -47,10 +75,54 @@ class ApplicationSerializer(serializers.ModelSerializer):
             'total_price': {'required': False, 'min_value': 0},
         }
 
+    def create(self, validated_data):
+        items_data = validated_data.pop('items_input', None)
+        instance = super().create(validated_data)
+
+        if items_data:
+            self._create_items(instance, items_data)
+            instance.recompute_with_items()
+
+        return instance
+
     def update(self, instance, validated_data):
+        items_data = validated_data.pop('items_input', None)
         if 'total_price' in validated_data:
             instance._skip_price_compute = True
-        return super().update(instance, validated_data)
+
+        instance = super().update(instance, validated_data)
+
+        if items_data is not None:
+            instance.items.all().delete()
+            self._create_items(instance, items_data)
+            instance.recompute_with_items()
+
+        return instance
+
+    @staticmethod
+    def _create_items(application, items_data):
+        for item_data in items_data:
+            service_id = item_data.get('service_id')
+            qty = item_data.get('quantity', 0)
+            if qty <= 0:
+                continue
+            svc = None
+            if service_id:
+                try:
+                    svc = Service.objects.get(pk=service_id)
+                except Service.DoesNotExist:
+                    continue
+            if svc:
+                ApplicationItem.objects.create(
+                    application=application,
+                    service=svc,
+                    title=svc.title,
+                    quantity=qty,
+                    unit_price=svc.price_value,
+                    price_unit=svc.price_unit,
+                    assembly_price=svc.assembly_price,
+                    half_price_next_days=svc.half_price_next_days,
+                )
 
     def get_goods_lines(self, obj: Application):
         return obj.goods_lines()
@@ -65,33 +137,60 @@ class ApplicationSubmitSerializer(serializers.Serializer):
     date = serializers.DateField()
     time = serializers.TimeField()
     place = serializers.CharField(max_length=MAX_LOCATION_LENGTH)
-    tent3x6 = serializers.IntegerField(min_value=0, max_value=MAX_LINE_QTY, default=0)
-    tent3x3 = serializers.IntegerField(min_value=0, max_value=MAX_LINE_QTY, default=0)
-    furniture = serializers.IntegerField(min_value=0, max_value=MAX_LINE_QTY, default=0)
-    chairs = serializers.IntegerField(min_value=0, max_value=MAX_LINE_QTY, default=0)
-    bulb = serializers.IntegerField(min_value=0, max_value=MAX_LINE_QTY, default=0)
     days = serializers.IntegerField(min_value=1, max_value=30, default=1)
     delivery = serializers.BooleanField()
     assembly = serializers.BooleanField()
+    items = SubmitItemSerializer(many=True, required=False, default=[])
+    tent3x6 = serializers.IntegerField(min_value=0, max_value=MAX_LINE_QTY, default=0, required=False)
+    tent3x3 = serializers.IntegerField(min_value=0, max_value=MAX_LINE_QTY, default=0, required=False)
+    furniture = serializers.IntegerField(min_value=0, max_value=MAX_LINE_QTY, default=0, required=False)
+    chairs = serializers.IntegerField(min_value=0, max_value=MAX_LINE_QTY, default=0, required=False)
+    bulb = serializers.IntegerField(min_value=0, max_value=MAX_LINE_QTY, default=0, required=False)
 
     def create(self, validated_data):
-        return Application.objects.create(
+        items_data = validated_data.pop('items', [])
+
+        app = Application.objects.create(
             full_name=validated_data['name'],
             phone=validated_data['phone'],
             event_date=validated_data['date'],
             event_time=validated_data['time'],
             location=validated_data['place'],
-            tent_3x6_qty=validated_data['tent3x6'],
-            tent_3x3_qty=validated_data['tent3x3'],
-            furniture_qty=validated_data['furniture'],
-            chairs_qty=validated_data['chairs'],
-            bulb_qty=validated_data['bulb'],
+            tent_3x6_qty=validated_data.get('tent3x6', 0),
+            tent_3x3_qty=validated_data.get('tent3x3', 0),
+            furniture_qty=validated_data.get('furniture', 0),
+            chairs_qty=validated_data.get('chairs', 0),
+            bulb_qty=validated_data.get('bulb', 0),
             rental_days=validated_data['days'],
             delivery=validated_data['delivery'],
             assembly=validated_data['assembly'],
             source=Application.Source.SITE,
             status=Application.Status.NEW,
         )
+
+        if items_data:
+            for item_data in items_data:
+                service_id = item_data.get('service_id')
+                qty = item_data.get('quantity', 0)
+                if qty <= 0:
+                    continue
+                try:
+                    svc = Service.objects.get(pk=service_id)
+                except Service.DoesNotExist:
+                    continue
+                ApplicationItem.objects.create(
+                    application=app,
+                    service=svc,
+                    title=svc.title,
+                    quantity=qty,
+                    unit_price=svc.price_value,
+                    price_unit=svc.price_unit,
+                    assembly_price=svc.assembly_price,
+                    half_price_next_days=svc.half_price_next_days,
+                )
+            app.recompute_with_items()
+
+        return app
 
     def to_representation(self, instance):
         return ApplicationSerializer(instance).data

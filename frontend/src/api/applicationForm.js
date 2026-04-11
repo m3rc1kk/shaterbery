@@ -14,6 +14,21 @@ export function normalizeTimeForApi(t) {
     return s;
 }
 
+function collectItems(form) {
+    const fd = new FormData(form);
+    const items = [];
+    for (const [key, value] of fd.entries()) {
+        const match = key.match(/^service_(\d+)$/);
+        if (match) {
+            const qty = intOrZero(value);
+            if (qty > 0) {
+                items.push({ service_id: Number(match[1]), quantity: qty });
+            }
+        }
+    }
+    return items;
+}
+
 export function publicSubmitPayloadFromForm(form) {
     const fd = new FormData(form);
     return {
@@ -22,14 +37,10 @@ export function publicSubmitPayloadFromForm(form) {
         date: String(fd.get('date') ?? ''),
         time: normalizeTimeForApi(fd.get('time')),
         place: String(fd.get('place') ?? '').trim(),
-        tent3x6: intOrZero(fd.get('tent3x6')),
-        tent3x3: intOrZero(fd.get('tent3x3')),
-        furniture: intOrZero(fd.get('furniture')),
-        chairs: intOrZero(fd.get('chairs')),
-        bulb: intOrZero(fd.get('bulb')),
         days: Math.max(1, intOrZero(fd.get('days')) || 1),
         delivery: yn(String(fd.get('delivery') ?? 'no')),
         assembly: yn(String(fd.get('assembly') ?? 'no')),
+        items: collectItems(form),
     };
 }
 
@@ -41,14 +52,10 @@ export function adminCreatePayloadFromForm(form) {
         event_date: p.date,
         event_time: p.time,
         location: p.place,
-        tent_3x6_qty: p.tent3x6,
-        tent_3x3_qty: p.tent3x3,
-        furniture_qty: p.furniture,
-        chairs_qty: p.chairs,
-        bulb_qty: p.bulb,
         rental_days: p.days,
         delivery: p.delivery,
         assembly: p.assembly,
+        items_input: p.items,
         source: 'manual',
         status: 'new',
     };
@@ -63,14 +70,10 @@ export function adminPatchPayloadFromForm(form) {
         event_date: p.date,
         event_time: p.time,
         location: p.place,
-        tent_3x6_qty: p.tent3x6,
-        tent_3x3_qty: p.tent3x3,
-        furniture_qty: p.furniture,
-        chairs_qty: p.chairs,
-        bulb_qty: p.bulb,
         rental_days: p.days,
         delivery: p.delivery,
         assembly: p.assembly,
+        items_input: p.items,
         source: String(fd.get('source') ?? 'site'),
         status: String(fd.get('status') ?? 'new'),
     };

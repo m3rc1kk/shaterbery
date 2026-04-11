@@ -36,25 +36,14 @@
   }
 
   &__header {
-    display: flex;
-    flex-direction: column;
-    row-gap: 8px;
-
-    &-icon {
-      opacity: .6;
-      flex-shrink: 0;
-
-      @include mobile {
-        width: 16px;
-        height: 16px;
-      }
-    }
+    padding-top: 4px;
   }
 
   &__title {
     margin: 0;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    font-size: 18px;
 
     @include mobile {
       font-size: 16px;

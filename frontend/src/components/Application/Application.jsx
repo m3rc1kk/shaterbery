@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import mailIcon from '../../assets/images/application/mail.svg'
 import compassIcon from '../../assets/images/application/compass.svg'
 import timeIcon from '../../assets/images/application/clock.svg'
@@ -17,48 +17,51 @@ import { publicSubmitPayloadFromForm } from '../../api/applicationForm.js';
 import { submitPublicApplication } from '../../api/applications.js';
 import { ApiError } from '../../api/http.js';
 import { formatMoneyRub } from '../../utils/format.js';
+import { fetchServices } from '../../api/services.js';
 
-const PRICES = {
-    tent3x6: 3000,
-    tent3x3: 2000,
-    furniture: 3000,
-    chairs: 150,
-    bulb: 100,
-};
+const UNIT_LABELS = { day: '/сут', piece: '/шт' };
 
-const PER_DAY_KEYS = ['tent3x6', 'tent3x3', 'furniture'];
+function formatServiceLabel(svc) {
+    const p = Number(svc.price_value) || 0;
+    const formatted = p.toLocaleString('ru-RU');
+    const unit = UNIT_LABELS[svc.price_unit] || '';
+    let label = `${svc.title} — ${formatted}₽${unit}`;
+    if (svc.half_price_next_days) {
+        label += ' (−50% след. сутки)';
+    }
+    return label;
+}
 
-const ASSEMBLY = {
-    tent3x6: 2000,
-    tent3x3: 1000,
-};
-
-function calcTotal(qty, days, assembly) {
+function calcTotal(services, qty, days, assembly) {
     const d = Math.max(1, days);
     const mult = 1 + 0.5 * (d - 1);
 
-    let perDay = 0;
-    let perPiece = 0;
-    for (const [key, count] of Object.entries(qty)) {
-        if (PER_DAY_KEYS.includes(key)) {
-            perDay += count * (PRICES[key] ?? 0);
+    let rental = 0;
+    let assemblyTotal = 0;
+
+    for (const svc of services) {
+        const count = qty[svc.id] || 0;
+        if (count <= 0) continue;
+        const price = Number(svc.price_value) || 0;
+
+        if (svc.price_unit === 'day') {
+            if (svc.half_price_next_days) {
+                rental += count * price * mult;
+            } else {
+                rental += count * price * d;
+            }
         } else {
-            perPiece += count * (PRICES[key] ?? 0);
+            rental += count * price;
+        }
+
+        if (assembly && svc.assembly_price > 0) {
+            assemblyTotal += count * svc.assembly_price;
         }
     }
 
-    const rental = Math.round(perDay * mult + perPiece);
-
-    let tentAssembly = 0;
-    if (assembly) {
-        tentAssembly += (qty.tent3x6 || 0) * ASSEMBLY.tent3x6;
-        tentAssembly += (qty.tent3x3 || 0) * ASSEMBLY.tent3x3;
-    }
-
-    const furnitureAssembly = (qty.furniture || 0) >= 2 ? 500 : 0;
-
-    const assemblyCost = tentAssembly + furnitureAssembly;
-    return { rental, tentAssembly, furnitureAssembly, assembly: assemblyCost, total: rental + assemblyCost };
+    rental = Math.round(rental);
+    const total = rental + assemblyTotal;
+    return { rental, assembly: assemblyTotal, total };
 }
 
 export default function Application() {
@@ -67,23 +70,38 @@ export default function Application() {
     const [pending, setPending] = useState(false);
     const [fieldsKey, setFieldsKey] = useState(0);
 
-    const [qty, setQty] = useState({
-        tent3x6: 0,
-        tent3x3: 0,
-        furniture: 0,
-        chairs: 0,
-        bulb: 0,
-    });
+    const [services, setServices] = useState([]);
+
+    const initQty = useCallback((svcs) => {
+        const q = {};
+        for (const s of svcs) q[s.id] = 0;
+        return q;
+    }, []);
+
+    const [qty, setQty] = useState({});
     const [days, setDays] = useState(1);
     const [delivery, setDelivery] = useState(true);
     const [assembly, setAssembly] = useState(false);
 
-    const handleQtyChange = useCallback((name, value) => {
-        setQty((prev) => ({ ...prev, [name]: value }));
+    useEffect(() => {
+        let cancelled = false;
+        fetchServices()
+            .then((data) => {
+                if (!cancelled) {
+                    setServices(data);
+                    setQty(initQty(data));
+                }
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [initQty]);
+
+    const handleQtyChange = useCallback((id, value) => {
+        setQty((prev) => ({ ...prev, [id]: value }));
     }, []);
 
-    const priceBreakdown = useMemo(() => calcTotal(qty, days, assembly), [qty, days, assembly]);
-    const { rental: rentalCost, tentAssembly, furnitureAssembly, assembly: assemblyCost, total: totalPrice } = priceBreakdown;
+    const priceBreakdown = useMemo(() => calcTotal(services, qty, days, assembly), [services, qty, days, assembly]);
+    const { rental: rentalCost, assembly: assemblyCost, total: totalPrice } = priceBreakdown;
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -98,7 +116,7 @@ export default function Application() {
             setMessage('Заявка отправлена. Мы свяжемся с вами в ближайшее время.');
             form.reset();
             setFieldsKey((k) => k + 1);
-            setQty({ tent3x6: 0, tent3x3: 0, furniture: 0, chairs: 0, bulb: 0 });
+            setQty(initQty(services));
             setDays(1);
             setDelivery(true);
             setAssembly(false);
@@ -219,53 +237,17 @@ export default function Application() {
                             onValueChange={setDays}
                         />
 
-                        <div className="application__form-tent">
-                            <QuantityInput
-                                id="tent3x6"
-                                name="tent3x6"
-                                label="Шатёр 3×6м — 3.000₽/сут"
-                                className="field__input--half"
-                                disabled={pending}
-                                onValueChange={(v) => handleQtyChange('tent3x6', v)}
-                            />
-
-                            <QuantityInput
-                                id="tent3x3"
-                                name="tent3x3"
-                                label="Шатёр 3×3м — 2.000₽/сут"
-                                className="field__input--half"
-                                disabled={pending}
-                                onValueChange={(v) => handleQtyChange('tent3x3', v)}
-                            />
-                        </div>
-
-                        <div className="application__form-furniture">
-                            <QuantityInput
-                                id="furniture"
-                                name="furniture"
-                                label="Комплект мебели — 3.000₽/сут"
-                                className="field__input--third"
-                                disabled={pending}
-                                onValueChange={(v) => handleQtyChange('furniture', v)}
-                            />
-
-                            <QuantityInput
-                                id="chairs"
-                                name="chairs"
-                                label="Стул раскладной — 150₽/шт"
-                                className="field__input--third"
-                                disabled={pending}
-                                onValueChange={(v) => handleQtyChange('chairs', v)}
-                            />
-
-                            <QuantityInput
-                                id="bulb"
-                                name="bulb"
-                                label="Лампочка — 100₽/шт"
-                                className="field__input--third"
-                                disabled={pending}
-                                onValueChange={(v) => handleQtyChange('bulb', v)}
-                            />
+                        <div className="application__form-services-list">
+                            {services.map((svc) => (
+                                <QuantityInput
+                                    key={svc.id}
+                                    id={`service_${svc.id}`}
+                                    name={`service_${svc.id}`}
+                                    label={formatServiceLabel(svc)}
+                                    disabled={pending}
+                                    onValueChange={(v) => handleQtyChange(svc.id, v)}
+                                />
+                            ))}
                         </div>
 
                         <div className="application__form-services">
@@ -301,22 +283,12 @@ export default function Application() {
                                                 {formatMoneyRub(rentalCost)}
                                             </span>
                                         </div>
-                                        {tentAssembly > 0 ? (
-                                            <div className="application__form-total-row">
-                                                <span className="application__form-total-label">Сборка шатров:</span>
-                                                <span className="application__form-total-value application__form-total-value--secondary">
-                                                    {formatMoneyRub(tentAssembly)}
-                                                </span>
-                                            </div>
-                                        ) : null}
-                                        {furnitureAssembly > 0 ? (
-                                            <div className="application__form-total-row">
-                                                <span className="application__form-total-label">Установка мебели:</span>
-                                                <span className="application__form-total-value application__form-total-value--secondary">
-                                                    {formatMoneyRub(furnitureAssembly)}
-                                                </span>
-                                            </div>
-                                        ) : null}
+                                        <div className="application__form-total-row">
+                                            <span className="application__form-total-label">Сборка:</span>
+                                            <span className="application__form-total-value application__form-total-value--secondary">
+                                                {formatMoneyRub(assemblyCost)}
+                                            </span>
+                                        </div>
                                     </>
                                 ) : null}
                                 <div className="application__form-total-row">
@@ -330,11 +302,7 @@ export default function Application() {
                                         * без учёта доставки
                                     </span>
                                 ) : null}
-                                {days > 1 ? (
-                                    <span className="application__form-total-hint">
-                                        * следующие сутки аренды со скидкой 50%
-                                    </span>
-                                ) : null}
+
                             </div>
                         ) : null}
 

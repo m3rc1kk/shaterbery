@@ -14,6 +14,7 @@ class Service(models.Model):
     price_value = models.PositiveIntegerField(default=0)
     price_unit = models.CharField(max_length=16, choices=UNIT_CHOICES, default='day')
     assembly_price = models.PositiveIntegerField(default=0)
+    half_price_next_days = models.BooleanField(default=False)
     sort_order = models.IntegerField(default=0)
     created_at = models.DateTimeField(default=timezone.now)
 
