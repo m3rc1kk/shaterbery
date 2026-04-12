@@ -1,0 +1,48 @@
+// ─── Scroll Reveal ──────────────────────────────────────────────────────────
+
+.section.will-animate {
+  opacity: 0;
+  transform: translateY(44px);
+  transition:
+    opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+
+  &.is-visible {
+    opacity: 1;
+    transform: none;
+
+    .section__header-subtitle {
+      animation: revealLeft 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .section__header-title {
+      animation: revealUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+    }
+
+    .section__content {
+      animation: revealUp 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+    }
+  }
+}
+
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes revealLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

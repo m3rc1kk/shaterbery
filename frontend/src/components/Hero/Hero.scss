@@ -30,6 +30,7 @@
     position: absolute;
     right: 0;
     bottom: 0;
+    animation: heroSlideRight 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
 
     @include full-screen {
       display: none;
@@ -44,6 +45,7 @@
     display: flex;
     flex-direction: column;
     align-items: start;
+    animation: heroSlideLeft 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
 
     @include full-screen {
       align-items: center;
@@ -147,5 +149,27 @@
       align-items: center;
       column-gap: 8px;
     }
+  }
+}
+
+@keyframes heroSlideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes heroSlideRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }

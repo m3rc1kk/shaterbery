@@ -1,7 +1,13 @@
 from decimal import Decimal
 
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
+
+_phone_validator = RegexValidator(
+    regex=r'^\+?[\d\s\-\(\)]{7,20}$',
+    message='Введите корректный номер телефона (7–20 цифр, допустимы +, пробел, дефис, скобки)',
+)
 
 
 class Application(models.Model):
@@ -26,7 +32,7 @@ class Application(models.Model):
     _ASSEMBLY_FURNITURE_PRICE = Decimal('500')
 
     full_name = models.CharField(max_length=255)
-    phone = models.CharField(max_length=32)
+    phone = models.CharField(max_length=32, validators=[_phone_validator])
     event_date = models.DateField()
     event_time = models.TimeField()
     location = models.TextField()
