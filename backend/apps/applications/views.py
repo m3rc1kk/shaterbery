@@ -41,11 +41,14 @@ class ApplicationViewSet(viewsets.ModelViewSet):
     search_fields = ['full_name', 'phone', 'location']
 
     def get_queryset(self):
-        qs = super().get_queryset()
+        qs = super().get_queryset().select_related('city').prefetch_related('items')
         status_param = self.request.query_params.get('status')
         if status_param and status_param in Application.Status.values:
             qs = qs.filter(status=status_param)
         source_param = self.request.query_params.get('source')
         if source_param and source_param in Application.Source.values:
             qs = qs.filter(source=source_param)
+        city_param = self.request.query_params.get('city')
+        if city_param:
+            qs = qs.filter(city__slug=city_param)
         return qs

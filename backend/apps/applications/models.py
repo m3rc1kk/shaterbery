@@ -1,4 +1,5 @@
 from decimal import Decimal
+from functools import cached_property
 
 from django.core.validators import RegexValidator
 from django.db import models
@@ -44,8 +45,11 @@ class Application(models.Model):
     rental_days = models.PositiveIntegerField(default=1)
     delivery = models.BooleanField(default=False)
     assembly = models.BooleanField(default=False)
+    city = models.ForeignKey(
+        'services.City', on_delete=models.SET_NULL, null=True, blank=True, related_name='applications'
+    )
     source = models.CharField(max_length=32, choices=Source.choices, default=Source.SITE)
-    status = models.CharField(max_length=16, choices=Status.choices, default=Status.NEW)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.NEW, db_index=True)
     total_price = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0'))
     created_at = models.DateTimeField(default=timezone.now, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -58,10 +62,16 @@ class Application(models.Model):
         d = max(1, int(days))
         return Decimal(1) + Decimal('0.5') * Decimal(d - 1)
 
+    @cached_property
+    def _prefetched_items(self):
+        if 'items' in getattr(self, '_prefetched_objects_cache', {}):
+            return list(self._prefetched_objects_cache['items'])
+        return list(self.items.all())
+
     def _has_dynamic_items(self):
         if not self.pk:
             return False
-        return self.items.exists()
+        return bool(self._prefetched_items)
 
     def compute_total_price(self) -> Decimal:
         if self._has_dynamic_items():
@@ -73,7 +83,7 @@ class Application(models.Model):
         mult = self._days_multiplier(days)
         total = Decimal('0')
 
-        for item in self.items.all():
+        for item in self._prefetched_items:
             q = Decimal(item.quantity)
             u = Decimal(item.unit_price)
             if item.price_unit == 'day':
@@ -124,7 +134,7 @@ class Application(models.Model):
         lines = []
         assembly_total = Decimal('0')
 
-        for item in self.items.all():
+        for item in self._prefetched_items:
             q = item.quantity
             if q <= 0:
                 continue
@@ -229,7 +239,7 @@ class Application(models.Model):
     def composition_summary(self) -> str:
         if self._has_dynamic_items():
             parts = []
-            for item in self.items.all():
+            for item in self._prefetched_items:
                 if item.quantity > 0:
                     parts.append(f'{item.quantity} - {item.title}')
             return ', '.join(parts) if parts else '—'
@@ -253,6 +263,7 @@ class Application(models.Model):
         super().save(*args, **kwargs)
 
     def recompute_with_items(self):
+        self.__dict__.pop('_prefetched_items', None)
         self._skip_price_compute = True
         self.save()
         self._skip_price_compute = False

@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import example1 from '../../assets/images/gallery/example.png'
-import example2 from '../../assets/images/gallery/example2.png'
-import example3 from '../../assets/images/gallery/example3.png'
-import example4 from '../../assets/images/gallery/example4.png'
-import example5 from '../../assets/images/gallery/example5.png'
+import example1 from '../../assets/images/gallery/example.jpg'
+import example2 from '../../assets/images/gallery/example1.jpg'
+import example3 from '../../assets/images/gallery/example2.jpg'
+import example4 from '../../assets/images/gallery/example3.jpg'
+import example5 from '../../assets/images/gallery/example4.jpg'
+import example6 from '../../assets/images/gallery/example5.jpg'
+import example7 from '../../assets/images/gallery/example6.jpg'
+import example8 from '../../assets/images/gallery/example7.jpg'
 import arrowRight from '../../assets/images/gallery/arrow-right.svg'
 import arrowLeft from '../../assets/images/gallery/arrow-left.svg'
 import ButtonLink from "../Button/ButtonLink.jsx";
@@ -19,6 +22,9 @@ export default function Gallery() {
             { src: example3, alt: 'Пример установки 3' },
             { src: example4, alt: 'Пример установки 4' },
             { src: example5, alt: 'Пример установки 5' },
+            { src: example6, alt: 'Пример установки 6' },
+            { src: example7, alt: 'Пример установки 7' },
+            { src: example8, alt: 'Пример установки 8' },
         ],
         []
     )

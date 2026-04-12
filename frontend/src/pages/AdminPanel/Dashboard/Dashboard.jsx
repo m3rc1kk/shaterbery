@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../../../components/AdminPanel/Sidebar/Sidebar.jsx";
+import { fetchCities } from "../../../api/cities.js";
 import DashboardCard from "../../../components/AdminPanel/DashboardCard/DashboardCard.jsx";
 import Graph from "../../../components/AdminPanel/Graph/Graph.jsx";
 import PopularGraph from "../../../components/AdminPanel/PopularGraph/PopularGraph.jsx";
@@ -15,6 +16,7 @@ import {
     fetchDashboardGraphs,
     fetchDashboardPopular,
     fetchDashboardRecent,
+    fetchDashboardVisitors,
 } from "../../../api/dashboard.js";
 
 const STATUS_LABELS = {
@@ -28,13 +30,25 @@ export default function Dashboard() {
     const [graphs, setGraphs] = useState(null);
     const [popular, setPopular] = useState(null);
     const [recent, setRecent] = useState(null);
+    const [visitors, setVisitors] = useState(null);
+    const [cities, setCities] = useState([]);
+    const [cityFilter, setCityFilter] = useState('all');
 
     useEffect(() => {
-        fetchDashboardCards().then(setCards).catch(() => {});
-        fetchDashboardGraphs().then(setGraphs).catch(() => {});
-        fetchDashboardPopular().then(setPopular).catch(() => {});
-        fetchDashboardRecent().then(setRecent).catch(() => {});
+        fetchCities().then(setCities).catch(() => {});
+        fetchDashboardVisitors().then(setVisitors).catch(() => {});
     }, []);
+
+    useEffect(() => {
+        setCards(null);
+        setGraphs(null);
+        setPopular(null);
+        setRecent(null);
+        fetchDashboardCards(cityFilter).then(setCards).catch(() => {});
+        fetchDashboardGraphs(cityFilter).then(setGraphs).catch(() => {});
+        fetchDashboardPopular(cityFilter).then(setPopular).catch(() => {});
+        fetchDashboardRecent(cityFilter).then(setRecent).catch(() => {});
+    }, [cityFilter]);
 
     const revenue = cards?.revenue;
     const appCount = cards?.applications_count;
@@ -46,6 +60,27 @@ export default function Dashboard() {
             <Sidebar />
             <div className="dashboard">
                 <div className="dashboard__inner">
+                    {cities.length > 0 && (
+                        <div className="dashboard__city-filter">
+                            <button
+                                type="button"
+                                className={`dashboard__city-btn${cityFilter === 'all' ? ' dashboard__city-btn--active' : ''}`}
+                                onClick={() => setCityFilter('all')}
+                            >
+                                Все
+                            </button>
+                            {cities.map((c) => (
+                                <button
+                                    key={c.slug}
+                                    type="button"
+                                    className={`dashboard__city-btn${cityFilter === c.slug ? ' dashboard__city-btn--active' : ''}`}
+                                    onClick={() => setCityFilter(c.slug)}
+                                >
+                                    {c.name}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                     <ul className="dashboard__card-list">
                         <li className="dashboard__card-item">
                             <DashboardCard
@@ -115,6 +150,31 @@ export default function Dashboard() {
                         />
                     </div>
 
+                    <div className="dashboard__visitors">
+                        <article className="visitors-block">
+                            <header className="visitors-block__header">
+                                <h2 className="visitors-block__title">Посетители сайта</h2>
+                                <span className="visitors-block__indicator" aria-hidden />
+                            </header>
+                            <div className="visitors-block__stats">
+                                {[
+                                    { label: 'Сегодня', key: 'today' },
+                                    { label: 'Неделя', key: 'week' },
+                                    { label: 'Месяц', key: 'month' },
+                                    { label: 'Год', key: 'year' },
+                                    { label: 'Всего', key: 'total' },
+                                ].map(({ label, key }) => (
+                                    <div className="visitors-block__stat" key={key}>
+                                        <span className="visitors-block__stat-label">{label}</span>
+                                        <span className="visitors-block__stat-value">
+                                            {visitors ? (visitors[key] ?? '—') : '—'}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </article>
+                    </div>
+
                     <div className="dashboard__lastline">
                         <div className="dashboard__popular">
                             <PopularGraph items={popular?.items} />
@@ -138,6 +198,7 @@ export default function Dashboard() {
                                                 <th className="recent-apps__th">Клиент</th>
                                                 <th className="recent-apps__th">Дата</th>
                                                 <th className="recent-apps__th">Цена</th>
+                                                <th className="recent-apps__th">Город</th>
                                                 <th className="recent-apps__th">Статус</th>
                                             </tr>
                                         </thead>
@@ -157,6 +218,9 @@ export default function Dashboard() {
                                                     </td>
                                                     <td className="recent-apps__td recent-apps__price">
                                                         {row.price}
+                                                    </td>
+                                                    <td className="recent-apps__td recent-apps__city">
+                                                        {row.city_name ?? '—'}
                                                     </td>
                                                     <td className="recent-apps__td recent-apps__status-cell">
                                                         <span

@@ -1,16 +1,8 @@
 import { useMemo } from "react"
 
-const defaultItems = [
-    { name: "Шатёр 3х3", count: 46 },
-    { name: "Шатёр 3х6", count: 32 },
-    { name: "Комплект мебели", count: 56 },
-    { name: "Раскладные стулья", count: 16 },
-    { name: "Лампочки", count: 6 }
-]
-
-export default function PopularGraph({ items = defaultItems }) {
+export default function PopularGraph({ items }) {
     const sortedItems = useMemo(
-        () => [...items].sort((a, b) => b.count - a.count),
+        () => items ? [...items].sort((a, b) => b.count - a.count) : [],
         [items]
     )
     const maxCount = Math.max(...sortedItems.map((item) => item.count), 1)
@@ -23,6 +15,12 @@ export default function PopularGraph({ items = defaultItems }) {
             </header>
 
             <div className="popular-graph__list">
+                {items === undefined && (
+                    <span className="popular-graph__empty">Загрузка...</span>
+                )}
+                {items !== undefined && sortedItems.length === 0 && (
+                    <span className="popular-graph__empty">Нет данных</span>
+                )}
                 {sortedItems.map((item) => {
                     const fillPercentage = (item.count / maxCount) * 100
 

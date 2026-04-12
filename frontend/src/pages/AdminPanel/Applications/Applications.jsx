@@ -13,6 +13,7 @@ import {
     pathFromNextUrl,
     patchApplication,
 } from '../../../api/applications.js';
+import { fetchCities } from '../../../api/cities.js';
 import { adminPatchPayloadFromForm } from '../../../api/applicationForm.js';
 import { ApiError } from '../../../api/http.js';
 import {
@@ -79,6 +80,8 @@ export default function Applications() {
     const [searchInput, setSearchInput] = useState('');
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [cityFilter, setCityFilter] = useState('all');
+    const [cities, setCities] = useState([]);
     const [loadingInitial, setLoadingInitial] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [listError, setListError] = useState('');
@@ -96,7 +99,7 @@ export default function Applications() {
         nextPathRef.current = null;
         loadingMoreRef.current = false;
         try {
-            const path = buildApplicationsListPath({ search, status: statusFilter });
+            const path = buildApplicationsListPath({ search, status: statusFilter, city: cityFilter });
             const data = await fetchApplicationsList(path);
             setList(data.results ?? []);
             nextPathRef.current = pathFromNextUrl(data.next);
@@ -112,11 +115,15 @@ export default function Applications() {
         } finally {
             setLoadingInitial(false);
         }
-    }, [search, statusFilter, navigate]);
+    }, [search, statusFilter, cityFilter, navigate]);
 
     useEffect(() => {
         loadFirstPage();
     }, [loadFirstPage]);
+
+    useEffect(() => {
+        fetchCities().then(setCities).catch(() => {});
+    }, []);
 
     const loadMore = useCallback(async () => {
         const path = nextPathRef.current;
@@ -327,6 +334,18 @@ export default function Applications() {
                             <option value="inwork">В работе</option>
                             <option value="closed">Закрыт</option>
                         </select>
+                        {cities.length > 0 && (
+                            <select
+                                className="applications__input-select"
+                                value={cityFilter}
+                                onChange={(e) => setCityFilter(e.target.value)}
+                            >
+                                <option value="all">Все города</option>
+                                {cities.map((c) => (
+                                    <option key={c.slug} value={c.slug}>{c.name}</option>
+                                ))}
+                            </select>
+                        )}
                     </header>
                     {listError ? (
                         <p className="applications__list-error" role="alert">
@@ -348,7 +367,7 @@ export default function Applications() {
                                     <th className="applications__th">Место</th>
                                     <th className="applications__th">Цена</th>
                                     <th className="applications__th applications__resource">Откуда</th>
-                                    <th className="applications__th applications__composition">Состав</th>
+                                    <th className="applications__th applications__city-col">Город</th>
                                     <th className="applications__th">Статус</th>
                                 </tr>
                             </thead>
@@ -397,8 +416,8 @@ export default function Applications() {
                                             {SOURCE_LABELS[app.source] ?? app.source}
                                         </td>
 
-                                        <td className="applications__td applications__composition">
-                                            {app.composition_summary ?? '—'}
+                                        <td className="applications__td applications__city-col">
+                                            {app.city_name ?? '—'}
                                         </td>
 
                                         <td
@@ -544,6 +563,12 @@ export default function Applications() {
                                         <span className="detail-applications__services-label">Сборка</span>
                                         <span className="detail-applications__services-value">
                                             {ynLabel(selected.assembly)}
+                                        </span>
+                                    </li>
+                                    <li className="detail-applications__services-item">
+                                        <span className="detail-applications__services-label">Город</span>
+                                        <span className="detail-applications__services-value">
+                                            {selected.city_name ?? '—'}
                                         </span>
                                     </li>
                                     <li className="detail-applications__services-item">
@@ -708,6 +733,7 @@ export default function Applications() {
                                     disabled={editSaving}
                                     defaults={editApp}
                                     showAdminMeta
+                                    cities={cities}
                                 />
                             </div>
 

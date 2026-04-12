@@ -1,6 +1,12 @@
 from rest_framework import serializers
 
-from .models import Service
+from .models import City, Service
+
+
+class CitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = City
+        fields = ['id', 'name', 'slug', 'region_label']
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -8,6 +14,7 @@ class ServiceSerializer(serializers.ModelSerializer):
         model = Service
         fields = [
             'id',
+            'city',
             'title',
             'description',
             'image',

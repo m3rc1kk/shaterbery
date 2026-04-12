@@ -19,7 +19,91 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    row-gap: 4px;
+    row-gap: 8px;
+  }
+
+  &__cities {
+    margin-bottom: 8px;
+  }
+
+  &__city-tabs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-bottom: 12px;
+    border-bottom: var(--border);
+  }
+
+  &__city-tab-wrap {
+    display: flex;
+    align-items: center;
+  }
+
+  &__city-tab {
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    border: var(--border);
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
+    background: transparent;
+    cursor: pointer;
+    transition: background var(--transition-duration) ease, color var(--transition-duration) ease;
+
+    @include hover {
+      background: color-mix(in srgb, var(--color-dark) 4%, transparent);
+    }
+
+    &--active {
+      background: var(--color-accent);
+      color: var(--color-light);
+      border-color: var(--color-accent);
+      cursor: default;
+
+      @include hover {
+        background: var(--color-accent);
+      }
+    }
+  }
+
+  &__city-tab-delete {
+    padding: 6px 8px;
+    font-size: 14px;
+    line-height: 1;
+    border: var(--border);
+    border-left: none;
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    background: transparent;
+    cursor: pointer;
+    opacity: 0.4;
+    transition: opacity var(--transition-duration) ease, background var(--transition-duration) ease;
+
+    @include hover {
+      opacity: 1;
+      background: color-mix(in srgb, var(--color-error, #c62828) 8%, transparent);
+      color: var(--color-error, #c62828);
+    }
+  }
+
+  &__city-add {
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px dashed rgba(0, 0, 0, .25);
+    border-radius: var(--border-radius);
+    background: transparent;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity var(--transition-duration) ease;
+
+    @include hover {
+      opacity: 1;
+    }
+  }
+
+  &__city-hint {
+    font-size: 13px;
+    opacity: 0.5;
   }
 
   &__header {
@@ -111,11 +195,18 @@
     &-desc {
       margin: 0;
       font-size: 13px;
+      line-height: 1.5;
       opacity: 0.55;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
+      min-height: calc(13px * 1.5 * 2);
+
+      &--empty {
+        opacity: 0.3;
+        font-style: italic;
+      }
     }
 
     &-price {
@@ -134,6 +225,10 @@
     &-assembly {
       font-size: 13px;
       opacity: 0.5;
+
+      &--zero {
+        opacity: 0.25;
+      }
     }
 
     &-discount {
@@ -141,6 +236,11 @@
       font-weight: 500;
       color: var(--color-accent, #3392ff);
       opacity: 0.8;
+
+      &--none {
+        color: var(--color-dark);
+        opacity: 0.25;
+      }
     }
 
     &-actions {
@@ -211,6 +311,10 @@
     font-size: 14px;
     font-weight: 500;
   }
+}
+
+.new-applications--compact {
+  max-width: 420px;
 }
 
 .field__textarea {

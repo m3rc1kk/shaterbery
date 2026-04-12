@@ -1,14 +1,23 @@
 from datetime import timedelta
 from decimal import Decimal
 
-from django.db.models import Sum, Count, Avg
+from django.db import IntegrityError
+from django.db.models import Sum, Count, Avg, Exists, OuterRef
 from django.db.models.functions import TruncDate, TruncMonth
 from django.utils import timezone
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.applications.models import Application
+from apps.applications.models import Application, ApplicationItem
+from apps.dashboard.models import PageVisit
+
+def _filter_city(qs, request):
+    city = request.query_params.get('city')
+    if city:
+        qs = qs.filter(city__slug=city)
+    return qs
+
 
 WEEKDAY_LABELS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 MONTH_LABELS = [
@@ -116,14 +125,14 @@ class DashboardCardsView(APIView):
         prev_month_end = current_month_start - timedelta(days=1)
         prev_month_start = prev_month_end.replace(day=1)
 
-        current_qs = Application.objects.filter(
+        current_qs = _filter_city(Application.objects.filter(
             created_at__date__gte=current_month_start,
             created_at__date__lte=today,
-        )
-        prev_qs = Application.objects.filter(
+        ), request)
+        prev_qs = _filter_city(Application.objects.filter(
             created_at__date__gte=prev_month_start,
             created_at__date__lte=prev_month_end,
-        )
+        ), request)
 
         current_closed = current_qs.filter(status=Application.Status.CLOSED)
         prev_closed = prev_qs.filter(status=Application.Status.CLOSED)
@@ -137,12 +146,12 @@ class DashboardCardsView(APIView):
         current_avg = current_closed.aggregate(a=Avg('total_price'))['a'] or Decimal('0')
         prev_avg = prev_closed.aggregate(a=Avg('total_price'))['a'] or Decimal('0')
 
-        pending_total = Application.objects.filter(status=Application.Status.NEW).count()
+        pending_total = _filter_city(Application.objects.filter(status=Application.Status.NEW), request).count()
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        pending_today = Application.objects.filter(
+        pending_today = _filter_city(Application.objects.filter(
             status=Application.Status.NEW,
             created_at__gte=today_start,
-        ).count()
+        ), request).count()
 
         revenue_change = _percent_change(float(current_revenue), float(prev_revenue))
         count_change = _percent_change(current_count, prev_count)
@@ -198,7 +207,7 @@ class DashboardGraphsView(APIView):
     permission_classes = [permissions.IsAdminUser]
 
     def get(self, request):
-        qs = Application.objects.all()
+        qs = _filter_city(Application.objects.all(), request)
         closed_qs = qs.filter(status=Application.Status.CLOSED)
 
         revenue = {
@@ -223,23 +232,53 @@ class DashboardPopularView(APIView):
     permission_classes = [permissions.IsAdminUser]
 
     def get(self, request):
-        qs = Application.objects.all()
+        city = request.query_params.get('city')
 
-        agg = qs.aggregate(
+        # --- Динамические позиции из ApplicationItem ---
+        item_qs = ApplicationItem.objects.all()
+        if city:
+            item_qs = item_qs.filter(application__city__slug=city)
+
+        dynamic_rows = (
+            item_qs
+            .values('title')
+            .annotate(total=Sum('quantity'))
+        )
+        totals = {}
+        for row in dynamic_rows:
+            if row['total']:
+                totals[row['title']] = totals.get(row['title'], 0) + row['total']
+
+        # --- Legacy-позиции из заявок без ApplicationItem ---
+        has_items_sub = ApplicationItem.objects.filter(application=OuterRef('pk'))
+        legacy_qs = Application.objects.annotate(
+            has_items=Exists(has_items_sub)
+        ).filter(has_items=False)
+        if city:
+            legacy_qs = legacy_qs.filter(city__slug=city)
+
+        legacy_agg = legacy_qs.aggregate(
             tent_3x3=Sum('tent_3x3_qty'),
             tent_3x6=Sum('tent_3x6_qty'),
             furniture=Sum('furniture_qty'),
             chairs=Sum('chairs_qty'),
             bulbs=Sum('bulb_qty'),
         )
+        legacy_map = {
+            'Шатёр 3×3 м': legacy_agg['tent_3x3'] or 0,
+            'Шатёр 3×6 м': legacy_agg['tent_3x6'] or 0,
+            'Комплект мебели': legacy_agg['furniture'] or 0,
+            'Стул раскладной': legacy_agg['chairs'] or 0,
+            'Лампочка': legacy_agg['bulbs'] or 0,
+        }
+        for name, count in legacy_map.items():
+            if count > 0:
+                totals[name] = totals.get(name, 0) + count
 
-        items = [
-            {'name': 'Шатёр 3х3', 'count': agg['tent_3x3'] or 0},
-            {'name': 'Шатёр 3х6', 'count': agg['tent_3x6'] or 0},
-            {'name': 'Комплект мебели', 'count': agg['furniture'] or 0},
-            {'name': 'Раскладные стулья', 'count': agg['chairs'] or 0},
-            {'name': 'Лампочки', 'count': agg['bulbs'] or 0},
-        ]
+        items = sorted(
+            [{'name': k, 'count': v} for k, v in totals.items()],
+            key=lambda x: -x['count'],
+        )
 
         return Response({'items': items})
 
@@ -248,7 +287,7 @@ class DashboardRecentView(APIView):
     permission_classes = [permissions.IsAdminUser]
 
     def get(self, request):
-        apps = Application.objects.order_by('-created_at', '-id')[:4]
+        apps = _filter_city(Application.objects.select_related('city'), request).order_by('-created_at', '-id')[:4]
 
         rows = []
         for app in apps:
@@ -259,6 +298,44 @@ class DashboardRecentView(APIView):
                 'date': app.created_at.strftime('%d %b %Y, %H:%M'),
                 'price': f'{int(app.total_price)}₽',
                 'status': app.status,
+                'city_name': app.city.name if app.city else None,
             })
 
         return Response({'applications': rows})
+
+
+class TrackVisitView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        session_key = request.data.get('session_key', '').strip()
+        if not session_key or len(session_key) > 64:
+            return Response({'ok': False}, status=400)
+
+        today = timezone.now().date()
+        try:
+            PageVisit.objects.create(session_key=session_key, date=today)
+        except IntegrityError:
+            pass
+
+        return Response({'ok': True})
+
+
+class DashboardVisitorsView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        today = timezone.now().date()
+        week_start = today - timedelta(days=today.weekday())
+        month_start = today.replace(day=1)
+        year_start = today.replace(month=1, day=1)
+
+        qs = PageVisit.objects.all()
+
+        return Response({
+            'today': qs.filter(date=today).count(),
+            'week': qs.filter(date__gte=week_start, date__lte=today).count(),
+            'month': qs.filter(date__gte=month_start, date__lte=today).count(),
+            'year': qs.filter(date__gte=year_start, date__lte=today).count(),
+            'total': qs.count(),
+        })

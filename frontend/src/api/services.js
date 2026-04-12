@@ -1,7 +1,8 @@
 import { apiFetch, apiJson, readJsonBody, ApiError } from './http.js';
 
-export async function fetchServices() {
-    return apiJson('/api/v1/services/');
+export async function fetchServices(citySlug) {
+    const url = citySlug ? `/api/v1/services/?city=${encodeURIComponent(citySlug)}` : '/api/v1/services/';
+    return apiJson(url);
 }
 
 export async function createService(formData) {

@@ -14,6 +14,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../auth/useAuth.js";
 import { adminCreatePayloadFromForm } from "../../../api/applicationForm.js";
 import { createApplicationAdmin } from "../../../api/applications.js";
+import { fetchCities } from "../../../api/cities.js";
 import { ApiError } from "../../../api/http.js";
 import AdminApplicationFormBody from "../AdminApplicationFormBody/AdminApplicationFormBody.jsx";
 
@@ -47,6 +48,7 @@ export default function Sidebar() {
     const [newAppFieldsKey, setNewAppFieldsKey] = useState(0);
     const [createError, setCreateError] = useState('');
     const [createPending, setCreatePending] = useState(false);
+    const [cities, setCities] = useState([]);
     const { pathname } = useLocation();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
@@ -55,6 +57,10 @@ export default function Sidebar() {
     const isDashboardPage = pathname.startsWith('/admin/dashboard');
     const isServicesPage = pathname.startsWith('/admin/services');
     const pageTitle = getPageTitle(pathname);
+
+    useEffect(() => {
+        fetchCities().then(setCities).catch(() => {});
+    }, []);
 
     const openMenu = () => {
         if (closeTimeoutRef.current) {
@@ -304,6 +310,8 @@ export default function Sidebar() {
                             <AdminApplicationFormBody
                                 idPrefix="new-app"
                                 disabled={createPending}
+                                showAdminMeta
+                                cities={cities}
                             />
                         </div>
 

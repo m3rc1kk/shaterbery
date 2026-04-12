@@ -4,14 +4,15 @@ import ButtonLink from "../Button/ButtonLink.jsx";
 import FAQCard from "../FAQCard/FAQCard.jsx";
 import arrowRight from "../../assets/images/hero/arrow-right.svg";
 import phoneIcon from "../../assets/images/footer/phone.svg";
-import mailIcon from "../../assets/images/footer/mail.svg";
 import timeIcon from "../../assets/images/footer/clock.svg";
 import compassIcon from "../../assets/images/footer/compass.svg";
 import logo from '../../assets/images/Logo.svg'
 import { AVITO_URL, faqItems } from "../../data/siteContent.js";
+import { useCity } from "../../context/CityContext.jsx";
 
 export default function Footer() {
     const [openId, setOpenId] = useState(null);
+    const { cityData } = useCity();
 
     const handleToggle = (id) => {
         setOpenId((prev) => (prev === id ? null : id));
@@ -109,14 +110,9 @@ export default function Footer() {
                                     <img src={phoneIcon} width={20} height={20} loading='lazy' alt="Телефон" className="footer__contact-icon"/>
                                     <div className="footer__contact-body">
                                         <span className="footer__contact-subtitle">Телефон</span>
-                                        <span className="footer__contact-title">+7 999  999 99 99</span>
-                                    </div>
-                                </li>
-                                <li className="footer__contact-item">
-                                    <img src={mailIcon} width={20} height={20} loading='lazy' alt="Телефон" className="footer__contact-icon"/>
-                                    <div className="footer__contact-body">
-                                        <span className="footer__contact-subtitle">Почта</span>
-                                        <span className="footer__contact-title">example@gmail.com</span>
+                                        <span className="footer__contact-title">
+                                            {cityData?.slug === 'smolensk' ? '+7 (952) 535 11 60' : '+7 919 204 69 99'}
+                                        </span>
                                     </div>
                                 </li>
                                 <li className="footer__contact-item">
@@ -127,10 +123,10 @@ export default function Footer() {
                                     </div>
                                 </li>
                                 <li className="footer__contact-item">
-                                    <img src={compassIcon} width={20} height={20} loading='lazy' alt="Телефон" className="footer__contact-icon"/>
+                                    <img src={compassIcon} width={20} height={20} loading='lazy' alt="Зона работы" className="footer__contact-icon"/>
                                     <div className="footer__contact-body">
                                         <span className="footer__contact-subtitle">Зона работы</span>
-                                        <span className="footer__contact-title">Орловская область</span>
+                                        <span className="footer__contact-title">{cityData?.region_label || 'Орловская область'}</span>
                                     </div>
                                 </li>
                             </ul>

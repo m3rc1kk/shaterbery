@@ -1,11 +1,14 @@
 import AppRouter from './routes/AppRouter.jsx';
 import { AuthProvider } from './auth/AuthProvider.jsx';
+import { CityProvider } from './context/CityContext.jsx';
 
 function App() {
     return (
-        <AuthProvider>
-            <AppRouter />
-        </AuthProvider>
+        <CityProvider>
+            <AuthProvider>
+                <AppRouter />
+            </AuthProvider>
+        </CityProvider>
     );
 }
 

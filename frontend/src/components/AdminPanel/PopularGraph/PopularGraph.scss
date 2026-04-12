@@ -54,6 +54,12 @@
     }
   }
 
+  &__empty {
+    font-size: 14px;
+    color: var(--color-dark);
+    opacity: 0.4;
+  }
+
   &__item {
     display: flex;
     flex-direction: column;

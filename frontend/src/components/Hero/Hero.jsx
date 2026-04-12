@@ -3,8 +3,12 @@ import arrowRight from "../../assets/images/hero/arrow-right.svg";
 import mapPin from "../../assets/images/hero/map-pin.svg";
 import heroImage from "../../assets/images/hero/Illustration.png";
 import { AVITO_URL } from "../../data/siteContent.js";
+import { useCity } from "../../context/CityContext.jsx";
 
 export default function Hero() {
+    const { cityData } = useCity();
+    const regionLabel = cityData?.region_label || 'Орловская область';
+
     return (
         <>
             <div className="hero container" id="hero">
@@ -12,7 +16,7 @@ export default function Hero() {
                     <div className="hero__body">
                         <div className="hero__location">
                             <img src={mapPin} width={12} height={14} loading='lazy' alt="Локация" className="hero__location-icon" />
-                            <span className="hero__location-text">Орловская область</span>
+                            <span className="hero__location-text">{regionLabel}</span>
                         </div>
 
                         <h1 className="hero__title">АРЕНДА ШАТРОВ И МЕБЕЛИ ДЛЯ ВАШЕГО МЕРОПРИЯТИЯ</h1>

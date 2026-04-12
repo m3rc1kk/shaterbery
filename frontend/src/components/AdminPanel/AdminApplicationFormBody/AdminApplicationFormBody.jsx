@@ -76,6 +76,7 @@ export default function AdminApplicationFormBody({
     disabled,
     defaults = null,
     showAdminMeta = false,
+    cities = [],
 }) {
     const d = defaults ?? {};
     const name = d.full_name ?? d.name ?? '';
@@ -88,6 +89,7 @@ export default function AdminApplicationFormBody({
     const assemblyDefault = d.assembly ?? false;
     const source = d.source ?? 'site';
     const status = d.status ?? 'new';
+    const cityDefault = d.city ?? '';
 
     const [liveStatus, setLiveStatus] = useState(() => (showAdminMeta ? status : 'new'));
 
@@ -266,6 +268,25 @@ export default function AdminApplicationFormBody({
 
             {showAdminMeta ? (
                 <div className="new-applications__form-admin-meta">
+                    {cities.length > 0 && (
+                        <div className="field field__input--half">
+                            <label className="field__label" htmlFor={`${idPrefix}-city`}>
+                                Город
+                            </label>
+                            <select
+                                id={`${idPrefix}-city`}
+                                name="city"
+                                className="field__input new-applications__source-select"
+                                defaultValue={cityDefault}
+                                disabled={disabled}
+                            >
+                                <option value="">— не указан —</option>
+                                {cities.map((c) => (
+                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                     <div className="field field__input--half">
                         <label className="field__label" htmlFor={`${idPrefix}-source`}>
                             Источник

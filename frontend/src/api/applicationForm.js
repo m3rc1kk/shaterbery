@@ -29,7 +29,7 @@ function collectItems(form) {
     return items;
 }
 
-export function publicSubmitPayloadFromForm(form) {
+export function publicSubmitPayloadFromForm(form, citySlug = '') {
     const fd = new FormData(form);
     return {
         name: String(fd.get('name') ?? '').trim(),
@@ -40,12 +40,16 @@ export function publicSubmitPayloadFromForm(form) {
         days: Math.max(1, intOrZero(fd.get('days')) || 1),
         delivery: yn(String(fd.get('delivery') ?? 'no')),
         assembly: yn(String(fd.get('assembly') ?? 'no')),
+        city_slug: citySlug || '',
         items: collectItems(form),
     };
 }
 
 export function adminCreatePayloadFromForm(form) {
     const p = publicSubmitPayloadFromForm(form);
+    const fd = new FormData(form);
+    const cityRaw = fd.get('city');
+    const city = cityRaw ? (parseInt(cityRaw, 10) || null) : null;
     return {
         full_name: p.name,
         phone: p.phone,
@@ -56,14 +60,17 @@ export function adminCreatePayloadFromForm(form) {
         delivery: p.delivery,
         assembly: p.assembly,
         items_input: p.items,
-        source: 'manual',
-        status: 'new',
+        city,
+        source: String(fd.get('source') ?? 'manual'),
+        status: String(fd.get('status') ?? 'new'),
     };
 }
 
 export function adminPatchPayloadFromForm(form) {
     const p = publicSubmitPayloadFromForm(form);
     const fd = new FormData(form);
+    const cityRaw = fd.get('city');
+    const city = cityRaw ? (parseInt(cityRaw, 10) || null) : null;
     return {
         full_name: p.name,
         phone: p.phone,
@@ -74,6 +81,7 @@ export function adminPatchPayloadFromForm(form) {
         delivery: p.delivery,
         assembly: p.assembly,
         items_input: p.items,
+        city,
         source: String(fd.get('source') ?? 'site'),
         status: String(fd.get('status') ?? 'new'),
     };

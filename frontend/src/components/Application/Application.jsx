@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import mailIcon from '../../assets/images/application/mail.svg'
 import compassIcon from '../../assets/images/application/compass.svg'
 import timeIcon from '../../assets/images/application/clock.svg'
 import phoneIcon from '../../assets/images/application/phone.svg'
@@ -18,6 +17,7 @@ import { submitPublicApplication } from '../../api/applications.js';
 import { ApiError } from '../../api/http.js';
 import { formatMoneyRub } from '../../utils/format.js';
 import { fetchServices } from '../../api/services.js';
+import { useCity } from '../../context/CityContext.jsx';
 
 const UNIT_LABELS = { day: '/сут', piece: '/шт' };
 
@@ -71,6 +71,7 @@ export default function Application() {
     const [fieldsKey, setFieldsKey] = useState(0);
 
     const [services, setServices] = useState([]);
+    const { citySlug, cityData } = useCity();
 
     const initQty = useCallback((svcs) => {
         const q = {};
@@ -85,7 +86,7 @@ export default function Application() {
 
     useEffect(() => {
         let cancelled = false;
-        fetchServices()
+        fetchServices(citySlug)
             .then((data) => {
                 if (!cancelled) {
                     setServices(data);
@@ -94,7 +95,7 @@ export default function Application() {
             })
             .catch(() => {});
         return () => { cancelled = true; };
-    }, [initQty]);
+    }, [citySlug, initQty]);
 
     const handleQtyChange = useCallback((id, value) => {
         setQty((prev) => ({ ...prev, [id]: value }));
@@ -111,7 +112,7 @@ export default function Application() {
         if (!(form instanceof HTMLFormElement)) return;
         setPending(true);
         try {
-            const payload = publicSubmitPayloadFromForm(form);
+            const payload = publicSubmitPayloadFromForm(form, citySlug);
             await submitPublicApplication(payload);
             setMessage('Заявка отправлена. Мы свяжемся с вами в ближайшее время.');
             form.reset();
@@ -146,14 +147,9 @@ export default function Application() {
                                 <img src={phoneIcon} width={20} height={20} loading='lazy' alt="Телефон" className="application__contact-icon"/>
                                 <div className="application__contact-body">
                                     <span className="application__contact-subtitle">Телефон</span>
-                                    <span className="application__contact-title">+7 999  999 99 99</span>
-                                </div>
-                            </li>
-                            <li className="application__contact-item">
-                                <img src={mailIcon} width={20} height={20} loading='lazy' alt="Почта" className="application__contact-icon"/>
-                                <div className="application__contact-body">
-                                    <span className="application__contact-subtitle">Почта</span>
-                                    <span className="application__contact-title">example@gmail.com</span>
+                                    <span className="application__contact-title">
+                                        {cityData?.slug === 'smolensk' ? '+7 (952) 535 11 60' : '+7 919 204 69 99'}
+                                    </span>
                                 </div>
                             </li>
                             <li className="application__contact-item">
@@ -167,7 +163,7 @@ export default function Application() {
                                 <img src={compassIcon} width={20} height={20} loading='lazy' alt="Зона работы" className="application__contact-icon"/>
                                 <div className="application__contact-body">
                                     <span className="application__contact-subtitle">Зона работы</span>
-                                    <span className="application__contact-title">Орловская область</span>
+                                    <span className="application__contact-title">{cityData?.region_label || 'Орловская область'}</span>
                                 </div>
                             </li>
                         </ul>

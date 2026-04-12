@@ -45,7 +45,7 @@
     align-items: center;
     column-gap: 8px;
 
-    @include tablet {
+    @include mobile {
       display: none;
     }
 
@@ -58,6 +58,132 @@
       background-color: var(--color-accent);
       border-radius: var(--border-radius);
       color: var(--color-light);
+    }
+  }
+
+  &__city {
+    position: relative;
+
+    @include mobile {
+      display: none;
+    }
+  }
+
+  &__city-selector {
+    position: relative;
+  }
+
+  &__city-btn {
+    display: flex;
+    align-items: center;
+    column-gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  &__city-arrow {
+    font-size: 10px;
+    opacity: .6;
+  }
+
+  &__city-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: var(--color-dark, #1a1a1a);
+    border-radius: var(--border-radius);
+    padding: 4px 0;
+    list-style: none;
+    margin: 0;
+    min-width: 130px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .4);
+    z-index: 100;
+    animation: city-dropdown-in 0.18s ease both;
+  }
+
+  @keyframes city-dropdown-in {
+    from {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  &__city-option {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    color: var(--color-light);
+    font-size: 14px;
+    opacity: .8;
+
+    @include hover {
+      opacity: 1;
+      background: rgba(255, 255, 255, .06);
+    }
+
+    &--active {
+      opacity: 1;
+      color: var(--color-accent);
+    }
+  }
+}
+
+.mobile-overlay {
+  &__city {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    row-gap: 14px;
+  }
+
+  &__city-label {
+    font-size: 14px;
+    color: var(--color-dark);
+    opacity: .4;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  &__city-list {
+    display: flex;
+    gap: 12px;
+  }
+
+  &__city-btn {
+    padding: 8px 16px;
+    border: 1px solid rgba(0, 0, 0, .15);
+    border-radius: var(--border-radius);
+    background: transparent;
+    cursor: pointer;
+    color: var(--color-dark);
+    font-size: 14px;
+    font-weight: 500;
+    transition: border-color var(--transition-duration) ease, background var(--transition-duration) ease;
+
+    @include hover {
+      border-color: rgba(0, 0, 0, .35);
+    }
+
+    &--active {
+      background: var(--color-accent);
+      border-color: var(--color-accent);
+      color: var(--color-light);
+      cursor: default;
+
+      @include hover {
+        background: var(--color-accent);
+        border-color: var(--color-accent);
+      }
     }
   }
 }

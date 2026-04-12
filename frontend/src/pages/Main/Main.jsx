@@ -10,9 +10,15 @@ import Reviews from "../../components/Reviews/Reviews.jsx";
 import Application from "../../components/Application/Application.jsx";
 import FAQ from "../../components/FAQ/FAQ.jsx";
 import Footer from "../../components/Footer/Footer.jsx";
+import CityDetect from "../../components/CityDetect/CityDetect.jsx";
+import { trackPageVisit } from "../../api/dashboard.js";
 
 export default function Main() {
     const location = useLocation();
+
+    useEffect(() => {
+        trackPageVisit();
+    }, []);
 
     useEffect(() => {
         if (!location.hash) return;
@@ -44,6 +50,7 @@ export default function Main() {
 
     return (
         <>
+            <CityDetect />
             <Header />
             <Hero />
 

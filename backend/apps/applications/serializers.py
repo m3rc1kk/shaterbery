@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import Application, ApplicationItem
-from apps.services.models import Service
+from apps.services.models import City, Service
 
 MAX_LOCATION_LENGTH = 4096
 MAX_LINE_QTY = 999
@@ -36,10 +36,22 @@ class ApplicationSerializer(serializers.ModelSerializer):
     items = ApplicationItemSerializer(many=True, read_only=True)
     items_input = SubmitItemSerializer(many=True, required=False, write_only=True)
 
+    city_slug = serializers.SerializerMethodField(read_only=True)
+    city_name = serializers.SerializerMethodField(read_only=True)
+
+    def get_city_slug(self, obj):
+        return obj.city.slug if obj.city else None
+
+    def get_city_name(self, obj):
+        return obj.city.name if obj.city else None
+
     class Meta:
         model = Application
         fields = [
             'id',
+            'city',
+            'city_slug',
+            'city_name',
             'full_name',
             'phone',
             'event_date',
@@ -140,6 +152,7 @@ class ApplicationSubmitSerializer(serializers.Serializer):
     days = serializers.IntegerField(min_value=1, max_value=30, default=1)
     delivery = serializers.BooleanField()
     assembly = serializers.BooleanField()
+    city_slug = serializers.CharField(max_length=100, required=False, allow_blank=True, default='')
     items = SubmitItemSerializer(many=True, required=False, default=[])
     tent3x6 = serializers.IntegerField(min_value=0, max_value=MAX_LINE_QTY, default=0, required=False)
     tent3x3 = serializers.IntegerField(min_value=0, max_value=MAX_LINE_QTY, default=0, required=False)
@@ -149,6 +162,13 @@ class ApplicationSubmitSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         items_data = validated_data.pop('items', [])
+        city_slug = validated_data.pop('city_slug', '') or ''
+        city = None
+        if city_slug:
+            try:
+                city = City.objects.get(slug=city_slug)
+            except City.DoesNotExist:
+                pass
 
         app = Application.objects.create(
             full_name=validated_data['name'],
@@ -164,6 +184,7 @@ class ApplicationSubmitSerializer(serializers.Serializer):
             rental_days=validated_data['days'],
             delivery=validated_data['delivery'],
             assembly=validated_data['assembly'],
+            city=city,
             source=Application.Source.SITE,
             status=Application.Status.NEW,
         )

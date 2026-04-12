@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import ServicesCard from '../ServicesCard/ServicesCard.jsx';
 import { fetchServices } from '../../api/services.js';
 import { API_BASE } from '../../api/config.js';
+import { useCity } from '../../context/CityContext.jsx';
 
 function resolveImage(img) {
     if (!img) return '';
@@ -18,16 +19,17 @@ function formatPrice(priceValue, priceUnit) {
 
 export default function Services() {
     const [services, setServices] = useState([]);
+    const { citySlug } = useCity();
 
     useEffect(() => {
         let cancelled = false;
-        fetchServices()
+        fetchServices(citySlug)
             .then((data) => {
                 if (!cancelled) setServices(data);
             })
             .catch(() => {});
         return () => { cancelled = true; };
-    }, []);
+    }, [citySlug]);
 
     return (
         <div className="services">
