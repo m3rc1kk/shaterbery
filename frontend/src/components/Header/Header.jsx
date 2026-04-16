@@ -11,7 +11,7 @@ export default function Header() {
     const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
     const { citySlug, cityData, cities, setCity } = useCity();
 
-    const displayName = cityData?.name ?? (citySlug === 'orel' ? 'Орёл' : citySlug);
+    const displayName = cityData?.name ?? citySlug ?? '…';
 
     const openMenu = () => {
         dialogRef.current.showModal();
